@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { Card } from "../game/types";
 import { RANK_SHORT } from "../game/types";
 
@@ -227,20 +227,6 @@ export function PlayingCard({
           {index}
         </span>
       )}
-      <AnimatePresence initial={false}>
-        {selected && (
-          <motion.span
-            className="playing-card__selected-mark"
-            initial={{ opacity: 0, scale: 0.35, rotate: -18 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.45, rotate: 12 }}
-            transition={{ type: "spring", stiffness: 520, damping: 22 }}
-            aria-hidden="true"
-          >
-            ✓
-          </motion.span>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

@@ -64,9 +64,11 @@ async function shot(page, name) {
   console.log("shot:", name);
 }
 
-async function startGame(page) {
+async function startGame(page, { waitForTable = true } = {}) {
   await page.getByRole("button", { name: "Сесть за стол" }).click();
-  await page.waitForSelector(".hand .playing-card", { timeout: 15000 });
+  if (waitForTable) {
+    await page.waitForSelector(".hand .playing-card", { timeout: 15000 });
+  }
 }
 
 execSync("npm run build", { stdio: "inherit" });
@@ -197,16 +199,18 @@ try {
   await mp.goto(BASE);
   await mp.waitForTimeout(800);
   await shot(mp, "20-menu-mobile");
-  await startGame(mp);
-  await mp.waitForTimeout(1100);
-  await shot(mp, "21-game-mobile");
+  await startGame(mp, { waitForTable: false });
+  await mp.waitForSelector(".orientation-gate", { timeout: 5000 });
+  await shot(mp, "21-mobile-rotate-prompt");
+
+  // Игра должна стартовать только после поворота этой же страницы.
+  await mp.setViewportSize({ width: 956, height: 440 });
+  await mp.waitForSelector(".hand .playing-card", { timeout: 15000 });
+  await mp.waitForTimeout(500);
+  await shot(mp, "22-game-mobile-landscape");
   await mp.locator(".hand__slot .playing-card").first().click();
   await mp.waitForTimeout(250);
-  await shot(mp, "22-mobile-selected");
-  await mp.locator(".log-toggle").click();
-  await mp.waitForTimeout(300);
-  await shot(mp, "23-mobile-log-open");
-  await mp.locator(".log-toggle").click();
+  await shot(mp, "23-mobile-selected-no-checkmark");
 
   // Пауза на мобильном
   await mp.getByRole("button", { name: "Пауза" }).click();
@@ -252,7 +256,7 @@ try {
   await shot(lp, "24-game-mobile-landscape");
   await lctx.close();
 
-  // ---------- Small phone (320px) + tablet ----------
+  // ---------- Small phone portrait→landscape + tablet ----------
   for (const [name, w, h] of [
     ["30-game-320px", 320, 568],
     ["31-game-tablet", 768, 1024],
@@ -267,7 +271,15 @@ try {
     await sp.goto(BASE);
     await sp.waitForTimeout(500);
     await shot(sp, `${name}-menu`);
-    await startGame(sp);
+    if (w <= 600) {
+      await startGame(sp, { waitForTable: false });
+      await sp.waitForSelector(".orientation-gate", { timeout: 5000 });
+      await shot(sp, `${name}-rotate-prompt`);
+      await sp.setViewportSize({ width: h, height: w });
+      await sp.waitForSelector(".hand .playing-card", { timeout: 15000 });
+    } else {
+      await startGame(sp);
+    }
     await sp.waitForTimeout(1000);
     await shot(sp, name);
     await sctx.close();

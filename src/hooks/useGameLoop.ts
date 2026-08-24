@@ -25,6 +25,7 @@ import {
 import { decideBotAction } from "../game/ai";
 import { ALL_CHARACTER_IDS, botLine } from "../game/characters";
 import { sfx } from "../game/sounds";
+import { ROULETTE_PRESENTATION_MS } from "../game/roulettePresentation";
 
 export interface GameSetup {
   playerName: string;
@@ -38,7 +39,7 @@ export interface GameSetup {
 const BOT_THINK_MIN = 1400;
 const BOT_THINK_MAX = 2600;
 const REVEAL_MS = 2800;
-const ROULETTE_MS = 4200;
+const ROULETTE_MS = ROULETTE_PRESENTATION_MS;
 /** Сколько держится реплика над местом игрока. */
 const TAUNT_MS = 3200;
 
@@ -108,6 +109,7 @@ export function useGameLoop(setup: GameSetup, paused = false): GameApi {
   );
 
   const isMyTurn =
+    !paused &&
     state.phase.kind === "idle" &&
     state.currentSeat === 0 &&
     state.players[0].alive;
@@ -256,6 +258,7 @@ export function useGameLoop(setup: GameSetup, paused = false): GameApi {
 
   const playCards = useCallback(
     (cardIds: string[]) => {
+      if (paused) return;
       if (!isPlayAllowed(state, 0, cardIds)) return;
       sfx.play("card");
       const me = state.players[0];
@@ -265,15 +268,16 @@ export function useGameLoop(setup: GameSetup, paused = false): GameApi {
       });
       dispatch({ type: "PLAY_CARDS", seat: 0, cardIds });
     },
-    [state],
+    [state, paused],
   );
 
   const challenge = useCallback(() => {
+    if (paused) return;
     if (!canCall) return;
     sfx.play("heartbeat");
     sfx.playVoice(state.players[0].characterId, "challenge");
     dispatch({ type: "CHALLENGE", challenger: 0 });
-  }, [canCall, state.players]);
+  }, [canCall, paused, state.players]);
 
   const checkPlay = useCallback(
     (cardIds: string[]) => isPlayAllowed(state, 0, cardIds),

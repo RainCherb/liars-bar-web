@@ -15,6 +15,9 @@ import {
 import { MenuScreen } from "./components/MenuScreen";
 import { GameTable } from "./components/GameTable";
 import { RulesModal } from "./components/RulesModal";
+import { OrientationGate } from "./components/OrientationGate";
+import { RevolverModal } from "./components/RevolverModal";
+import { AnimatePresence } from "framer-motion";
 
 type Screen = "menu" | "game";
 
@@ -82,6 +85,42 @@ export default function App() {
     if (!muted) sfx.play("uiClick");
   };
 
+  // Детерминированная сцена доступна только на локальном сервере визуальной QA.
+  const isLocalQa =
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "localhost";
+  const qaRoulette = isLocalQa
+    ? new URLSearchParams(window.location.search).get("qa")
+    : null;
+  const qaStageParam = isLocalQa
+    ? new URLSearchParams(window.location.search).get("stage")
+    : null;
+  const qaStage =
+    qaStageParam === "load" ||
+    qaStageParam === "cock" ||
+    qaStageParam === "spin" ||
+    qaStageParam === "aim" ||
+    qaStageParam === "impact" ||
+    qaStageParam === "result"
+      ? qaStageParam
+      : undefined;
+  if (qaRoulette === "roulette-fired" || qaRoulette === "roulette-dry") {
+    return (
+      <div className="app app--visual-qa">
+        <RevolverModal
+          open
+          shooterName="Проверка механики"
+          fired={qaRoulette === "roulette-fired"}
+          pullNumber={1}
+          remainingChambers={6}
+          index={1}
+          total={1}
+          stageOverride={qaStage}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       {/* Плавающая кнопка звука — только в меню; в игре звук в топбаре */}
@@ -110,7 +149,7 @@ export default function App() {
           onResetStats={() => setStats(clearStats())}
         />
       ) : (
-        <Game
+        <LandscapeGame
           key={gameKey}
           setup={setup}
           muted={settings.muted}
@@ -140,10 +179,70 @@ interface GameProps {
   onGameEnd: (state: GameState) => void;
 }
 
-function Game({ setup, muted, onToggleMute, onExit, onRestart, onGameEnd }: GameProps) {
+function readPortraitPhone(): boolean {
+  if (typeof window === "undefined") return false;
+  const shortSide = Math.min(window.innerWidth, window.innerHeight);
+  const longSide = Math.max(window.innerWidth, window.innerHeight);
+  // Размеры намеренно важнее user-agent: так работают iPadOS «как Mac»,
+  // встроенные браузеры и режим «сайт для компьютера» на телефоне.
+  return (
+    window.innerHeight > window.innerWidth &&
+    shortSide <= 600 &&
+    longSide <= 1100
+  );
+}
+
+function usePortraitPhone(): boolean {
+  const [portrait, setPortrait] = useState(readPortraitPhone);
+
+  useEffect(() => {
+    const update = () => setPortrait(readPortraitPhone());
+    const media = window.matchMedia("(orientation: portrait)");
+    media.addEventListener?.("change", update);
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    update();
+    return () => {
+      media.removeEventListener?.("change", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+    };
+  }, []);
+
+  return portrait;
+}
+
+function LandscapeGame(props: GameProps) {
+  const portrait = usePortraitPhone();
+  const [started, setStarted] = useState(() => !portrait);
+
+  useEffect(() => {
+    if (!portrait) setStarted(true);
+  }, [portrait]);
+
+  if (!started) return <OrientationGate />;
+
+  return (
+    <>
+      <Game {...props} orientationBlocked={portrait} />
+      <AnimatePresence>{portrait && <OrientationGate resumed />}</AnimatePresence>
+    </>
+  );
+}
+
+function Game({
+  setup,
+  muted,
+  onToggleMute,
+  onExit,
+  onRestart,
+  onGameEnd,
+  orientationBlocked = false,
+}: GameProps & { orientationBlocked?: boolean }) {
   // Пауза: боты не ходят, рулетка не доигрывается, таймер стоит.
   const [paused, setPaused] = useState(false);
-  const api = useGameLoop(setup, paused);
+  const effectivePaused = paused || orientationBlocked;
+  const api = useGameLoop(setup, effectivePaused);
   const recorded = useRef(false);
 
   useEffect(() => {
@@ -161,7 +260,7 @@ function Game({ setup, muted, onToggleMute, onExit, onRestart, onGameEnd }: Game
       onToggleMute={onToggleMute}
       onExit={onExit}
       onRestart={onRestart}
-      paused={paused}
+      paused={effectivePaused}
       onPause={setPaused}
     />
   );

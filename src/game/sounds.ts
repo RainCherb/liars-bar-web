@@ -8,6 +8,7 @@ import type { CharacterId, Rank } from "./types";
 export type SfxName =
   | "card"
   | "flip"
+  | "reload"
   | "spin"
   | "cock"
   | "dryClick"
@@ -248,6 +249,9 @@ export class SoundEngine {
 
     // Тактильная отдача для ключевых событий, если доступен Vibration API.
     switch (name) {
+      case "reload":
+        this.vibrate([10, 24, 12]);
+        break;
       case "gunshot":
         this.vibrate([40, 30, 120]);
         break;
@@ -291,10 +295,31 @@ export class SoundEngine {
         src.start(t);
         break;
       }
+      case "reload": {
+        // Латунный патрон входит в гнездо, затем барабан защёлкивается.
+        for (const [offset, freq, gain] of [
+          [0, 2600, 0.2],
+          [0.18, 1350, 0.3],
+          [0.39, 720, 0.38],
+        ] as const) {
+          const src = ctx.createBufferSource();
+          src.buffer = this.noiseBuffer(ctx, 0.045);
+          const filter = ctx.createBiquadFilter();
+          filter.type = "bandpass";
+          filter.frequency.value = freq;
+          filter.Q.value = 7;
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(gain, t + offset);
+          g.gain.exponentialRampToValueAtTime(0.001, t + offset + 0.055);
+          src.connect(filter).connect(g).connect(this.master);
+          src.start(t + offset);
+        }
+        break;
+      }
       case "spin": {
-        // Трещотка барабана: серия коротких щелчков с замедлением.
+        // Трещотка укладывается в визуальную фазу вращения (~1 секунда).
         let time = t;
-        for (let i = 0; i < 14; i++) {
+        for (let i = 0; i < 11; i++) {
           const src = ctx.createBufferSource();
           src.buffer = this.noiseBuffer(ctx, 0.03);
           const filter = ctx.createBiquadFilter();
@@ -305,7 +330,7 @@ export class SoundEngine {
           g.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
           src.connect(filter).connect(g).connect(this.master);
           src.start(time);
-          time += 0.055 + i * 0.022;
+          time += 0.035 + i * 0.009;
         }
         break;
       }

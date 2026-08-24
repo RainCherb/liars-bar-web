@@ -301,6 +301,7 @@ export function GameTable({
 
       <RevolverModal
         open={!!roulette}
+        paused={paused}
         shooterName={roulette ? state.players[roulette.shooter].name : ""}
         fired={roulette?.fired ?? false}
         pullNumber={roulette?.pullNumber ?? 1}
