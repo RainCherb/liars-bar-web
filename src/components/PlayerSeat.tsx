@@ -83,37 +83,44 @@ export function PlayerSeat({
         )}
       </div>
 
-      <div className="seat__name">
-        {player.name}
-        {isStarter && (
-          <span className="seat__starter" title="Начинал раунд">
-            ●
-          </span>
-        )}
-      </div>
+      <div className="seat__meta">
+        <div className="seat__name">
+          {player.name}
+          {isStarter && (
+            <span className="seat__starter" title="Начинал раунд">
+              ●
+            </span>
+          )}
+        </div>
 
-      <div
-        className="seat__bullets"
-        title={`Осечек пережито: ${pullsMade} · ${odds}`}
-        aria-label={`${player.name}: ${odds}`}
-      >
-        {Array.from({ length: CHAMBERS }).map((_, i) => (
-          <span
-            key={i}
-            className={`seat__bullet ${i < pullsMade ? "is-spent" : ""}`}
-          />
-        ))}
-      </div>
+        <div className="seat__resources">
+          <div
+            className="seat__bullets"
+            title={`Осечек пережито: ${pullsMade} · ${odds}`}
+            aria-label={`${player.name}: ${odds}`}
+          >
+            {Array.from({ length: CHAMBERS }).map((_, i) => (
+              <span
+                key={i}
+                className={`seat__bullet ${i < pullsMade ? "is-spent" : ""}`}
+              />
+            ))}
+          </div>
 
-      <div className="seat__cards" title={`Карт на руках: ${player.hand.length}`}>
-        {Array.from({ length: Math.min(player.hand.length, HAND_SIZE) }).map(
-          (_, i) => (
-            <span key={i} className="mini-card" />
-          ),
-        )}
-        {player.alive && player.hand.length === 0 && (
-          <span className="seat__nocards">пусто</span>
-        )}
+          <div className="seat__cards" title={`Карт на руках: ${player.hand.length}`}>
+            <span className="seat__cardcount" aria-hidden="true">
+              {player.hand.length} карт
+            </span>
+            {Array.from({ length: Math.min(player.hand.length, HAND_SIZE) }).map(
+              (_, i) => (
+                <span key={i} className="mini-card" />
+              ),
+            )}
+            {player.alive && player.hand.length === 0 && (
+              <span className="seat__nocards">пусто</span>
+            )}
+          </div>
+        </div>
       </div>
 
       {!player.alive && <div className="seat__deadlabel">мёртв</div>}

@@ -918,6 +918,7 @@ button {
    Места игроков
    ------------------------------------------------------------ */
 .seat {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -928,6 +929,14 @@ button {
   background: rgba(25, 20, 24, 0.82);
   min-width: 128px;
   transition: box-shadow 0.3s, border-color 0.3s, filter 0.4s;
+}
+
+.seat__meta,
+.seat__resources {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .seat.is-active .seat__avatar svg {
@@ -1036,6 +1045,10 @@ button {
   display: flex;
   gap: 3px;
   min-height: 22px;
+}
+
+.seat__cardcount {
+  display: none;
 }
 
 .mini-card {
@@ -3053,65 +3066,167 @@ button {
     width: 100%;
     height: 100%;
     min-height: 0;
-    padding: 5px 12px;
-    gap: 4px;
+    padding: 6px 12px 5px;
+    gap: 3px;
     border-radius: 13px;
   }
 
   .scene__seats--top {
-    min-height: 32px;
-    flex: 0 0 32px;
-    justify-content: space-around;
-    gap: 8px;
-    padding-inline: 4%;
+    min-height: 56px;
+    flex: 0 0 56px;
+    justify-content: center;
+    align-items: stretch;
+    gap: clamp(8px, 2.2vw, 20px);
+    padding-inline: 2%;
   }
 
   .seat {
     min-width: 0;
-    min-height: 30px;
-    flex-direction: row;
+    width: clamp(158px, 22vw, 196px);
+    max-width: none;
+    flex: 0 1 196px;
+    min-height: 52px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-rows: 1fr;
     align-items: center;
-    gap: 6px;
-    padding: 2px 9px;
-    border-radius: 999px;
+    gap: 9px;
+    padding: 4px 10px 4px 7px;
+    border-radius: 14px;
+    background:
+      linear-gradient(105deg, rgba(39, 29, 34, 0.96), rgba(18, 14, 17, 0.92)),
+      radial-gradient(circle at 20% 30%, rgba(201, 162, 75, 0.1), transparent 60%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 6px 14px rgba(5, 3, 5, 0.34);
   }
 
   .seat__avatar,
   .seat__avatar svg {
-    width: 27px;
-    height: 27px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .seat__avatar {
+    grid-column: 1;
+    grid-row: 1;
+    border-radius: 12px;
+    background: rgba(8, 6, 8, 0.48);
+    box-shadow: inset 0 0 0 1px rgba(201, 162, 75, 0.13);
+    overflow: visible;
+  }
+
+  .seat__meta {
+    grid-column: 2;
+    min-width: 0;
+    width: 100%;
+    align-items: flex-start;
+    gap: 5px;
   }
 
   .seat__name {
-    font-size: 10px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.055em;
+    line-height: 1.1;
+    text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .seat__resources {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 7px;
   }
 
   .seat__bullets {
     display: flex;
-    gap: 2px;
+    flex: 0 0 auto;
+    gap: 2.5px;
   }
 
   .seat__bullet {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
 
-  .seat__cards,
   .seat__deadlabel {
     display: none;
   }
 
+  .seat__cards {
+    min-height: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .seat__cards .mini-card,
+  .seat__cards .seat__nocards {
+    display: none;
+  }
+
+  .seat__cardcount {
+    display: inline-flex;
+    align-items: center;
+    min-height: 16px;
+    padding: 1px 5px;
+    border: 1px solid rgba(201, 162, 75, 0.18);
+    border-radius: 5px;
+    color: rgba(236, 225, 205, 0.58);
+    font-size: 8px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .seat__thinking {
+    display: none;
+  }
+
+  .seat__lastplay {
+    top: -5px;
+    right: -6px;
+    padding: 1px 4px;
+    font-size: 8px;
+    line-height: 1.2;
+  }
+
+  .seat__taunt {
+    bottom: calc(100% + 4px);
+    max-width: min(150px, 28vw);
+    padding: 4px 7px;
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
   .felt {
-    left: 1.6%;
-    right: 1.6%;
-    top: 39px;
-    bottom: 37px;
+    left: 50%;
+    right: auto;
+    width: min(64%, 600px);
+    top: 60px;
+    bottom: 48px;
+    transform: translateX(-50%);
+    border-width: 7px;
+    border-radius: 48% / 43%;
+    box-shadow:
+      inset 0 0 52px rgba(0, 0, 0, 0.52),
+      inset 0 0 0 2px rgba(201, 162, 75, 0.2),
+      0 0 0 8px #33200f,
+      0 0 0 10px #1d1108,
+      0 14px 32px rgba(0, 0, 0, 0.52);
   }
 
   .center {
+    width: min(64%, 600px);
     min-height: 0;
     flex: 1 1 auto;
+    margin-inline: auto;
     display: grid;
     grid-template-columns: minmax(72px, 1fr) auto minmax(72px, 1fr);
     grid-template-rows: minmax(66px, 1fr) 18px;
@@ -3161,10 +3276,14 @@ button {
     grid-column: 1 / -1;
     grid-row: 2;
     align-self: end;
-    width: 100%;
+    width: auto;
+    max-width: 92%;
     min-height: 16px;
-    padding: 0 8px;
+    padding: 0 10px;
     overflow: hidden;
+    border: 1px solid rgba(201, 162, 75, 0.12);
+    border-radius: 999px;
+    background: rgba(12, 9, 11, 0.66);
     color: rgba(236, 225, 205, 0.72);
     font-size: 11px;
     line-height: 16px;
@@ -3173,12 +3292,22 @@ button {
   }
 
   .scene__me {
-    min-height: 30px;
-    flex: 0 0 30px;
+    min-height: 48px;
+    flex: 0 0 48px;
   }
 
   .scene__me .seat {
-    padding: 2px 10px;
+    width: clamp(174px, 24vw, 210px);
+    min-height: 46px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: 3px 10px 3px 7px;
+    border-radius: 13px;
+  }
+
+  .scene__me .seat__avatar,
+  .scene__me .seat__avatar svg {
+    width: 40px;
+    height: 40px;
   }
 
   .hand {
@@ -3346,13 +3475,68 @@ button {
   }
 
   .seat {
-    padding-inline: 6px;
+    width: clamp(138px, 27vw, 154px);
+    min-height: 44px;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 6px;
+    padding: 3px 6px 3px 5px;
   }
 
   .seat__avatar,
   .seat__avatar svg {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .scene__seats--top {
+    min-height: 48px;
+    flex-basis: 48px;
+    gap: 5px;
+    padding-inline: 0;
+  }
+
+  .seat__name {
+    font-size: 10px;
+  }
+
+  .seat__resources {
+    gap: 4px;
+  }
+
+  .seat__bullet {
+    width: 5px;
+    height: 5px;
+  }
+
+  .seat__cardcount {
+    padding-inline: 3px;
+    font-size: 7px;
+  }
+
+  .felt {
+    width: min(82%, 500px);
+    top: 53px;
+    bottom: 44px;
+  }
+
+  .center {
+    width: min(78%, 440px);
+  }
+
+  .scene__me {
+    min-height: 41px;
+    flex-basis: 41px;
+  }
+
+  .scene__me .seat {
+    min-height: 40px;
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .scene__me .seat__avatar,
+  .scene__me .seat__avatar svg {
+    width: 34px;
+    height: 34px;
   }
 
   .hand {
