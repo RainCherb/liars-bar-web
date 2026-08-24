@@ -3096,6 +3096,254 @@ button {
     overflow: hidden;
   }
 
+  /* Главное меню: самостоятельная компактная композиция для телефона боком. */
+  .menu {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    display: block;
+    padding:
+      max(9px, env(safe-area-inset-top))
+      max(52px, env(safe-area-inset-right))
+      max(9px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+    overflow: hidden;
+  }
+
+  .menu__glow {
+    top: -330px;
+    width: min(78vw, 720px);
+    height: min(78vw, 720px);
+    opacity: 0.78;
+  }
+
+  .menu__inner {
+    width: min(1040px, 100%);
+    height: 100%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(250px, 0.78fr) minmax(0, 1.62fr);
+    grid-template-rows: repeat(6, auto);
+    align-content: center;
+    column-gap: clamp(18px, 3vw, 34px);
+    row-gap: clamp(6px, 1.6vh, 10px);
+    text-align: left;
+  }
+
+  .menu__over {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+    font-size: 9px;
+    line-height: 1.35;
+    letter-spacing: 0.24em;
+    text-wrap: balance;
+  }
+
+  .menu__title {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: clamp(36px, 8.8vh, 50px);
+    line-height: 0.84;
+    letter-spacing: 0.035em;
+    white-space: normal;
+  }
+
+  .menu__title span {
+    display: block;
+    margin-top: 6px;
+  }
+
+  .menu__subtitle {
+    grid-column: 1;
+    grid-row: 3;
+    max-width: 34ch;
+    font-size: 10px;
+    line-height: 1.45;
+    letter-spacing: 0.08em;
+    text-wrap: balance;
+  }
+
+  .menu__section {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: center;
+    min-width: 0;
+  }
+
+  .menu__section h2 {
+    margin-bottom: 7px;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-align: left;
+  }
+
+  .menu__chars {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .menu__char {
+    width: 100%;
+    min-width: 0;
+    gap: 3px;
+    padding: 6px 3px 5px;
+    border-radius: 10px;
+  }
+
+  .menu__char:hover {
+    transform: translateY(-2px);
+  }
+
+  .menu__char svg {
+    width: clamp(38px, 7.2vh, 48px);
+    height: clamp(38px, 7.2vh, 48px);
+  }
+
+  .menu__char-name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-overflow: ellipsis;
+  }
+
+  .menu__row {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    display: grid;
+    grid-template-columns: minmax(130px, 0.72fr) minmax(260px, 1.38fr) minmax(140px, 0.76fr) minmax(210px, 1.12fr);
+    align-items: end;
+    gap: clamp(6px, 1.2vw, 12px);
+    margin: 2px 0 0;
+  }
+
+  .menu__field {
+    min-width: 0;
+    gap: 5px;
+  }
+
+  .menu__field > span {
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.2em;
+  }
+
+  .menu__field input {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  .menu__diff {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .menu__diff button {
+    min-width: 0;
+    min-height: 38px;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 6px 5px;
+    border-radius: 7px;
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .menu__diff button small {
+    display: none;
+  }
+
+  .menu__check {
+    grid-column: 1;
+    grid-row: 5;
+    align-self: center;
+    min-width: 0;
+    gap: 7px;
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  .menu__check input {
+    flex: 0 0 15px;
+    width: 15px;
+    height: 15px;
+  }
+
+  .menu__actions {
+    position: relative;
+    grid-column: 2;
+    grid-row: 5;
+    z-index: 22;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 7px;
+    margin: 0;
+  }
+
+  .menu__actions .btn {
+    width: auto;
+    min-height: 38px;
+    padding: 7px 14px;
+    font-size: 10px;
+  }
+
+  .menu__actions .btn--primary {
+    min-width: 180px;
+  }
+
+  .menu__stats {
+    position: absolute;
+    inset: 8px 0 48px;
+    z-index: 20;
+    padding: 14px;
+    overflow: auto;
+    border: 1px solid rgba(201, 162, 75, 0.34);
+    border-radius: 14px;
+    background: rgba(13, 10, 13, 0.96);
+    box-shadow: 0 20px 70px rgba(4, 2, 4, 0.72), inset 0 1px rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(18px);
+  }
+
+  .menu__stats-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .menu__stat {
+    min-width: 0;
+    padding: 8px 6px;
+  }
+
+  .menu__footnote {
+    grid-column: 1 / -1;
+    grid-row: 6;
+    margin: 0;
+    font-size: 9px;
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .sound-toggle {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: auto;
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
   .game {
     width: 100%;
     max-width: none;
@@ -3627,6 +3875,161 @@ button {
 }
 
 @media (orientation: landscape) and (max-height: 390px) and (max-width: 700px) {
+  .menu {
+    padding:
+      max(6px, env(safe-area-inset-top))
+      max(44px, env(safe-area-inset-right))
+      max(6px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+  }
+
+  .menu__inner {
+    grid-template-columns: minmax(174px, 0.72fr) minmax(0, 1.28fr);
+    grid-template-rows: repeat(4, auto);
+    column-gap: 9px;
+    row-gap: 5px;
+  }
+
+  .menu__over,
+  .menu__footnote {
+    display: none;
+  }
+
+  .menu__title {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+    font-size: clamp(30px, 10.5vh, 36px);
+  }
+
+  .menu__title span {
+    margin-top: 4px;
+  }
+
+  .menu__subtitle {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    font-size: 8px;
+    line-height: 1.3;
+  }
+
+  .menu__section {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .menu__section h2 {
+    margin-bottom: 4px;
+    font-size: 8px;
+    letter-spacing: 0.16em;
+  }
+
+  .menu__chars {
+    gap: 3px;
+  }
+
+  .menu__char {
+    gap: 1px;
+    padding: 3px 1px 2px;
+    border-radius: 7px;
+  }
+
+  .menu__char svg {
+    width: clamp(28px, 10vh, 34px);
+    height: clamp(28px, 10vh, 34px);
+  }
+
+  .menu__char-name {
+    font-size: 7px;
+  }
+
+  .menu__row {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px 8px;
+    margin: 0;
+  }
+
+  .menu__field {
+    gap: 3px;
+  }
+
+  .menu__field > span {
+    font-size: 7px;
+    letter-spacing: 0.14em;
+  }
+
+  .menu__field input,
+  .menu__diff button {
+    height: 30px;
+    min-height: 30px;
+  }
+
+  .menu__field input {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .menu__diff button {
+    padding: 4px 3px;
+    font-size: 8px;
+  }
+
+  .menu__check {
+    grid-column: 1;
+    grid-row: 4;
+    font-size: 8px;
+  }
+
+  .menu__actions {
+    grid-column: 2;
+    grid-row: 4;
+    gap: 4px;
+  }
+
+  .menu__actions .btn {
+    min-height: 32px;
+    padding: 5px 7px;
+    font-size: 8px;
+  }
+
+  .menu__actions .btn--primary {
+    min-width: 116px;
+  }
+
+  .menu__stats {
+    inset: 4px 0 38px;
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .menu__stats-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .menu__stat {
+    padding: 5px 3px;
+  }
+
+  .menu__stat b {
+    font-size: 13px;
+  }
+
+  .menu__stat span {
+    font-size: 7px;
+  }
+
+  .sound-toggle {
+    top: max(5px, env(safe-area-inset-top));
+    right: max(5px, env(safe-area-inset-right));
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
   .game {
     padding-inline: max(6px, env(safe-area-inset-left));
   }
