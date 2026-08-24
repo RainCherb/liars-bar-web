@@ -141,9 +141,13 @@ try {
       await shot(page, "08-reveal-overlay");
       await page.waitForTimeout(1400);
       await page.waitForSelector(".overlay--roulette", { timeout: 5000 });
-      await page.waitForTimeout(1000);
+      await page.waitForSelector('.overlay--roulette[data-stage="spin"]', {
+        timeout: 3000,
+      });
       await shot(page, "09-roulette-spin");
-      await page.waitForTimeout(1700);
+      await page.waitForSelector('.overlay--roulette[data-stage="result"]', {
+        timeout: 3000,
+      });
       await shot(page, "10-roulette-result");
       await page.waitForFunction(
         () => !document.querySelector(".overlay--roulette"),
@@ -223,7 +227,9 @@ try {
       await mp.waitForTimeout(800);
       await shot(mp, "26-mobile-reveal");
       await mp.waitForSelector(".overlay--roulette", { timeout: 5000 });
-      await mp.waitForTimeout(1800);
+      await mp.waitForSelector('.overlay--roulette[data-stage="spin"]', {
+        timeout: 3000,
+      });
       await shot(mp, "27-mobile-roulette");
     }
   } catch (error) {

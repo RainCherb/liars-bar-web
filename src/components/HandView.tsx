@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Card, Rank } from "../game/types";
 import { MAX_PLAY_CARDS, RANK_LABELS } from "../game/types";
 import { PlayingCard } from "./PlayingCard";
@@ -37,6 +37,7 @@ export function HandView({
 }: Props) {
   const [selected, setSelected] = useState<string[]>([]);
   const [warn, setWarn] = useState<string | null>(null);
+  const reduceMotion = useReducedMotion();
 
   // Выбор протухает, если карты ушли из руки (пересдача раунда).
   const handIds = new Set(hand.map((c) => c.id));
@@ -127,38 +128,56 @@ export function HandView({
   return (
     <div className="hand">
       <div className="hand__cards" role="group" aria-label="Ваши карты">
-        {hand.map((card, i) => {
-          const angle = (i - (hand.length - 1) / 2) * 5;
-          const devil = isDevil(card);
-          const isPicked = picked.includes(card.id);
-          const matches = card.rank === tableRank || card.rank === "JKR";
-          return (
-            <motion.div
-              key={card.id}
-              className="hand__slot"
-              style={{ "--i": i } as CSSProperties}
-              initial={{ y: -90, opacity: 0, rotate: angle * 3 }}
-              animate={{ y: 0, opacity: 1, rotate: angle }}
-              transition={{
-                delay: Math.min(i * 0.07, 0.5),
-                type: "spring",
-                stiffness: 240,
-                damping: 20,
-              }}
-            >
-              <PlayingCard
-                card={card}
-                faceUp
-                devil={devil}
-                matchesTable={matches}
-                selected={isPicked}
-                disabled={!canAct || mustChallenge}
-                index={i + 1}
-                onClick={() => toggle(card.id)}
-              />
-            </motion.div>
-          );
-        })}
+        <AnimatePresence mode="popLayout">
+          {hand.map((card, i) => {
+            const angle = (i - (hand.length - 1) / 2) * 5;
+            const devil = isDevil(card);
+            const isPicked = picked.includes(card.id);
+            const matches = card.rank === tableRank || card.rank === "JKR";
+            return (
+              <motion.div
+                layout="position"
+                key={card.id}
+                className={`hand__slot ${isPicked ? "is-selected" : ""}`}
+                style={{ "--i": i } as CSSProperties}
+                initial={
+                  reduceMotion
+                    ? { opacity: 0 }
+                    : { y: -90, opacity: 0, rotate: angle * 3, scale: 0.88 }
+                }
+                animate={{
+                  y: reduceMotion ? 0 : isPicked ? -22 : 0,
+                  opacity: 1,
+                  rotate: angle,
+                  scale: reduceMotion ? 1 : isPicked ? 1.045 : 1,
+                }}
+                exit={
+                  reduceMotion
+                    ? { opacity: 0 }
+                    : { y: -150, opacity: 0, rotate: angle * 0.35, scale: 0.72 }
+                }
+                transition={{
+                  delay: Math.min(i * 0.055, 0.36),
+                  type: "spring",
+                  stiffness: isPicked ? 420 : 260,
+                  damping: isPicked ? 22 : 24,
+                  layout: { type: "spring", stiffness: 340, damping: 28 },
+                }}
+              >
+                <PlayingCard
+                  card={card}
+                  faceUp
+                  devil={devil}
+                  matchesTable={matches}
+                  selected={isPicked}
+                  disabled={!canAct || mustChallenge}
+                  index={i + 1}
+                  onClick={() => toggle(card.id)}
+                />
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
         {hand.length === 0 && <p className="hand__empty">Рука пуста</p>}
       </div>
 

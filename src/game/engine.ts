@@ -80,6 +80,11 @@ function cardsWord(n: number): string {
   return `${n} карт`;
 }
 
+function actorAction(player: PlayerState, thirdPerson: string, secondPerson: string): string {
+  const verb = player.name.trim().toLowerCase() === "вы" ? secondPerson : thirdPerson;
+  return `${player.name} ${verb}`;
+}
+
 // ---------------------------------------------------------------------------
 // Старт партии
 // ---------------------------------------------------------------------------
@@ -336,7 +341,7 @@ function playCards(
   // до вскрытия выдавала бы блеф ботов человеку бесплатно.
   log(
     state,
-    `${player.name} кладёт ${cardsWord(played.length)}. Заявлено на столе: ${pileClaimCount(state)}.`,
+    `${actorAction(player, "кладёт", "кладёте")} ${cardsWord(played.length)}. Заявлено на столе: ${pileClaimCount(state)}.`,
     "info",
   );
 
@@ -428,13 +433,13 @@ function resolveReveal(state: GameState): GameState {
   if (wasLie) {
     log(
       state,
-      `${challengerPlayer.name} вскрывает выкладку ${accusedPlayer.name} (${shown}): ЛОЖЬ!`,
+      `${actorAction(challengerPlayer, "вскрывает", "вскрываете")} выкладку ${accusedPlayer.name} (${shown}): ЛОЖЬ!`,
       "lie",
     );
   } else {
     log(
       state,
-      `${challengerPlayer.name} вскрывает выкладку ${accusedPlayer.name} (${shown}): правда. Обвинение ошибочно.`,
+      `${actorAction(challengerPlayer, "вскрывает", "вскрываете")} выкладку ${accusedPlayer.name} (${shown}): правда. Обвинение ошибочно.`,
       "truth",
     );
   }
@@ -487,7 +492,7 @@ function beginShot(
 
   log(
     state,
-    `${shooterPlayer.name} берёт свой револьвер. Спуск №${pullNumber}: шанс выстрела ${remainingChambers > 1 ? `1 из ${remainingChambers}` : "верный"}.`,
+    `${actorAction(shooterPlayer, "берёт", "берёте")} свой револьвер. Спуск №${pullNumber}: шанс выстрела ${remainingChambers > 1 ? `1 из ${remainingChambers}` : "верный"}.`,
     "shot",
   );
 

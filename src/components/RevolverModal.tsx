@@ -17,16 +17,25 @@ interface Props {
 }
 
 /** Тайминги сцены. Согласованы с ROULETTE_MS в useGameLoop (запас на закрытие). */
-const AIM_MS = 650;
-const COCK_MS = 650;
-const SPIN_MS = 1150;
+const AIM_MS = 700;
+const COCK_MS = 700;
+const SPIN_MS = 1300;
+const IMPACT_MS = 500;
 
-type RouletteStage = "aim" | "cock" | "spin" | "result";
+type RouletteStage = "aim" | "cock" | "spin" | "impact" | "result";
+
+const STAGES: Array<{ id: RouletteStage; label: string }> = [
+  { id: "aim", label: "Прицел" },
+  { id: "cock", label: "Взвод" },
+  { id: "spin", label: "Барабан" },
+  { id: "impact", label: "Спуск" },
+  { id: "result", label: "Исход" },
+];
 
 /**
  * Сцена русской рулетки: прицел → взвод курка → подача гнезда → щелчок или выстрел.
- * Барабан НЕ раскручивается заново: по правилам его крутят лишь однажды в
- * начале партии, поэтому каждая осечка приближает боевой патрон. Общая
+ * Визуальный оборот заканчивается ровно на следующем гнезде и не меняет
+ * порядок патрона: каждая осечка по-прежнему приближает выстрел. Общая
  * длительность согласована с таймером ADVANCE (ROULETTE_MS).
  */
 export function RevolverModal({
@@ -63,14 +72,18 @@ export function RevolverModal({
       setScene({ id: sceneId, stage: "spin" });
       sfx.play("spin");
     }, AIM_MS + COCK_MS);
-    const resultTimer = setTimeout(() => {
-      setScene({ id: sceneId, stage: "result" });
+    const impactTimer = setTimeout(() => {
+      setScene({ id: sceneId, stage: "impact" });
       sfx.play(fired ? "gunshot" : "dryClick");
     }, AIM_MS + COCK_MS + SPIN_MS);
+    const resultTimer = setTimeout(() => {
+      setScene({ id: sceneId, stage: "result" });
+    }, AIM_MS + COCK_MS + SPIN_MS + IMPACT_MS);
 
     return () => {
       clearTimeout(cockTimer);
       clearTimeout(spinTimer);
+      clearTimeout(impactTimer);
       clearTimeout(resultTimer);
     };
   }, [open, sceneId, fired]);
@@ -80,53 +93,78 @@ export function RevolverModal({
   const notch = 360 / CHAMBERS;
   const baseRotation = spent * notch;
   const nextRotation = baseRotation + notch;
-  const showFlash = fired && stage === "result";
+  const stageIndex = STAGES.findIndex((item) => item.id === stage);
+  const showFlash = fired && stage === "impact";
+  const showSmoke = fired && (stage === "impact" || stage === "result");
 
-  const gunMotion = reduceMotion
-    ? { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }
-    : stage === "aim"
-      ? { x: 0, y: 0, rotate: -5, scale: 1, opacity: 1 }
+  const fullGunMotion =
+    stage === "aim"
+      ? { x: 34, y: 26, rotate: -2, scale: 0.94, opacity: 1 }
       : stage === "cock"
         ? {
-            x: [0, -6, 0],
-            y: [0, -11, -8],
-            rotate: [-5, -8, -6],
-            scale: [1, 1.025, 1.015],
+            x: [34, -18, -10],
+            y: [26, -28, -20],
+            rotate: [-2, -10, -7],
+            scale: [0.94, 1.075, 1.04],
             opacity: 1,
           }
         : stage === "spin"
           ? {
-              x: [0, -4, 3, -2, 0],
-              y: -8,
-              rotate: [-6, -7, -5, -6],
-              scale: 1.015,
+              x: [-10, -18, -3, -14, -8],
+              y: -20,
+              rotate: [-7, -10, -5, -8, -7],
+              scale: 1.04,
               opacity: 1,
             }
-          : fired
+          : stage === "impact" && fired
             ? {
-                x: [0, 30, -18, 10, -5, 0],
-                y: [-8, -26, -5, -12, -8],
-                rotate: [-6, -15, -2, -9, -6],
-                scale: [1.015, 1.06, 0.985, 1.02, 1],
+                x: [-8, 64, -34, 18, -10],
+                y: [-20, -58, -4, -28, -18],
+                rotate: [-7, -22, 4, -13, -7],
+                scale: [1.04, 1.13, 0.96, 1.055, 1.02],
                 opacity: 1,
               }
-            : {
-                x: [0, 7, -4, 2, 0],
-                y: [-8, -11, -8],
-                rotate: [-6, -8, -5, -6],
-                scale: 1,
-                opacity: 1,
-              };
+            : stage === "impact"
+              ? {
+                  x: [-8, 18, -13, 7, -6],
+                  y: [-20, -25, -18],
+                  rotate: [-7, -12, -4, -7],
+                  scale: [1.04, 1.06, 1.01],
+                  opacity: 1,
+                }
+              : { x: -6, y: -18, rotate: -7, scale: 1.02, opacity: 1 };
 
-  const gunTransition = reduceMotion
-    ? { duration: 0 }
-    : stage === "aim"
-      ? { duration: 0.62, ease: [0.16, 1, 0.3, 1] as const }
+  const reducedGunMotion =
+    stage === "aim"
+      ? { x: 0, y: 0, rotate: 0, scale: 0.97, opacity: 0.72 }
       : stage === "cock"
-        ? { duration: 0.48, ease: "easeOut" as const }
+        ? { x: 0, y: 0, rotate: 0, scale: 1.025, opacity: 1 }
         : stage === "spin"
-          ? { duration: 1.05, ease: "easeInOut" as const }
-          : { duration: fired ? 0.58 : 0.34, ease: "easeOut" as const };
+          ? { x: 0, y: 0, rotate: 0, scale: 1, opacity: [0.72, 1] }
+          : stage === "impact"
+            ? {
+                x: 0,
+                y: 0,
+                rotate: 0,
+                scale: fired ? [1, 1.055, 1] : [1, 0.985, 1],
+                opacity: fired ? [1, 0.48, 1] : 1,
+              }
+            : { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 };
+
+  const gunMotion = reduceMotion ? reducedGunMotion : fullGunMotion;
+
+  const gunTransition =
+    reduceMotion
+      ? { duration: stage === "impact" ? 0.3 : 0.38, ease: "easeOut" as const }
+      : stage === "aim"
+      ? { duration: 0.68, ease: [0.16, 1, 0.3, 1] as const }
+      : stage === "cock"
+        ? { duration: 0.62, ease: "easeOut" as const }
+        : stage === "spin"
+          ? { duration: 1.22, ease: "easeInOut" as const }
+          : stage === "impact"
+            ? { duration: fired ? 0.48 : 0.38, ease: "easeOut" as const }
+            : { duration: 0.42, ease: "easeOut" as const };
 
   return (
     <AnimatePresence>
@@ -137,6 +175,7 @@ export function RevolverModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
+          data-stage={stage}
           role="alertdialog"
           aria-label="Русская рулетка"
         >
@@ -155,7 +194,7 @@ export function RevolverModal({
               )}
             </p>
             <p className="roulette__who">
-              Спускает курок: <b>{shooterName}</b>
+              У револьвера: <b>{shooterName}</b>
             </p>
             <motion.p
               key={pullNumber + "-" + index}
@@ -170,14 +209,32 @@ export function RevolverModal({
                 : "выстрел неизбежен"}
             </motion.p>
 
+            <ol className="roulette__timeline" aria-label="Этапы спуска">
+              {STAGES.map((item, itemIndex) => (
+                <li
+                  key={item.id}
+                  className={
+                    itemIndex === stageIndex
+                      ? "is-active"
+                      : itemIndex < stageIndex
+                        ? "is-done"
+                        : ""
+                  }
+                >
+                  <span aria-hidden="true" />
+                  {item.label}
+                </li>
+              ))}
+            </ol>
+
             <div className="roulette__scene">
               <motion.div
                 key={sceneId}
                 className="revolver-wrap"
                 initial={
                   reduceMotion
-                    ? false
-                    : { x: 120, y: 74, rotate: 13, scale: 0.78, opacity: 0 }
+                    ? { scale: 0.96, opacity: 0 }
+                    : { x: 260, y: 100, rotate: 22, scale: 0.62, opacity: 0 }
                 }
                 animate={gunMotion}
                 transition={gunTransition}
@@ -207,25 +264,39 @@ export function RevolverModal({
                       style={{ transformBox: "view-box", transformOrigin: "150px 78px" }}
                       animate={
                         reduceMotion
-                          ? { rotate: stage === "result" ? nextRotation : baseRotation }
+                          ? {
+                              rotate:
+                                stage === "spin" || stage === "impact" || stage === "result"
+                                  ? nextRotation
+                                  : baseRotation,
+                            }
                           : stage === "spin"
-                            ? {
-                                rotate: [
-                                  baseRotation,
-                                  baseRotation + notch * 0.18,
-                                  baseRotation + notch * 0.92,
-                                  baseRotation + notch * 0.8,
-                                  nextRotation,
-                                ],
-                              }
-                            : { rotate: stage === "result" ? nextRotation : baseRotation }
+                          ? {
+                              rotate: [
+                                baseRotation,
+                                baseRotation + 70,
+                                baseRotation + 238,
+                                baseRotation + 388,
+                                baseRotation + 360 + notch,
+                              ],
+                            }
+                          : {
+                              rotate:
+                                stage === "impact" || stage === "result"
+                                  ? nextRotation
+                                  : baseRotation,
+                            }
                       }
                       transition={
                         reduceMotion
-                          ? { duration: 0 }
+                          ? { duration: stage === "spin" ? 0.38 : 0.12, ease: "easeOut" }
                           : stage === "spin"
-                            ? { duration: 0.95, times: [0, 0.18, 0.68, 0.84, 1], ease: "easeInOut" }
-                            : { duration: 0.16, ease: "easeOut" }
+                          ? {
+                              duration: 1.2,
+                              times: [0, 0.16, 0.48, 0.78, 1],
+                              ease: [0.25, 0.8, 0.2, 1],
+                            }
+                          : { duration: 0.18, ease: "easeOut" }
                       }
                     >
                       <circle cx="150" cy="78" r="26" fill="#454550" stroke="#15151a" strokeWidth="2" />
@@ -246,6 +317,8 @@ export function RevolverModal({
                           />
                         );
                       })}
+                      <path d="M147 49 L153 49 L151 58 Z" fill="#d5af58" />
+                      <circle cx="150" cy="52" r="1.8" fill="#fff0ae" />
                       <circle cx="150" cy="78" r="4" fill="#8f97a3" />
                     </motion.g>
                   </g>
@@ -263,12 +336,14 @@ export function RevolverModal({
                           ? 0
                           : stage === "cock" || stage === "spin"
                             ? -30
-                            : fired
-                              ? 8
-                              : 0,
+                            : stage === "impact"
+                              ? fired
+                                ? 16
+                                : 9
+                              : 2,
                     }}
                     transition={{
-                      duration: reduceMotion ? 0 : stage === "cock" ? 0.38 : 0.14,
+                      duration: stage === "cock" ? 0.52 : 0.16,
                       ease: "easeOut",
                     }}
                   />
@@ -291,7 +366,7 @@ export function RevolverModal({
                   </AnimatePresence>
                 </svg>
 
-                {showFlash && <span className="revolver__smoke" aria-hidden="true" />}
+                {showSmoke && <span className="revolver__smoke" aria-hidden="true" />}
               </motion.div>
 
               <AnimatePresence>
@@ -316,7 +391,11 @@ export function RevolverModal({
                   ? "Ствол поднимается…"
                   : stage === "cock"
                     ? "Курок взводится…"
-                    : "Барабан подаёт следующее гнездо…"}
+                    : stage === "spin"
+                      ? "Барабан проворачивается…"
+                      : fired
+                        ? "Отдача бьёт в плечо…"
+                        : "Ударник срывается…"}
               </p>
             )}
           </motion.div>

@@ -193,17 +193,26 @@ export function GameTable({
                         className={`center__pile-card ${entry.cards.length > 1 ? "is-multi" : ""} ${
                           i === state.pile.length - 1 ? "is-top" : ""
                         }`}
-                        style={{
-                          rotate: `${entryRotation(i)}deg`,
+                        initial={{ y: -82, opacity: 0, scale: 0.72, rotate: entryRotation(i) + 14 }}
+                        animate={{
+                          y: [0, 7, 0],
+                          opacity: 1,
+                          scale: [0.9, 1.055, 1],
+                          rotate: [entryRotation(i) + 7, entryRotation(i) - 2, entryRotation(i)],
                         }}
-                        initial={{ y: -70, opacity: 0, scale: 0.85 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: 90, opacity: 0, transition: { duration: 0.35 } }}
-                        transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                        transition={{ duration: 0.48, times: [0, 0.68, 1], ease: [0.16, 1, 0.3, 1] }}
                       >
                         <PlayingCard size="md" />
                         {entry.cards.length > 1 && (
-                          <span className="pile-count">×{entry.cards.length}</span>
+                          <motion.span
+                            className="pile-count"
+                            initial={{ opacity: 0, scale: 0, rotate: -22 }}
+                            animate={{ opacity: 1, scale: [0, 1.22, 1], rotate: 0 }}
+                            transition={{ delay: 0.25, duration: 0.38 }}
+                          >
+                            ×{entry.cards.length}
+                          </motion.span>
                         )}
                       </motion.div>
                     ))}

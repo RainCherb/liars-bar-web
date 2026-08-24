@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { Card } from "../game/types";
 import { RANK_SHORT } from "../game/types";
 
@@ -12,7 +12,57 @@ interface FaceProps {
   devil?: boolean;
 }
 
+function DevilFace({ rank, size }: { rank: string; size: Size }) {
+  const glyph = SUIT_GLYPH[rank] ?? "?";
+  const short = RANK_SHORT[rank as keyof typeof RANK_SHORT] ?? rank[0];
+
+  return (
+    <div className={`card-face card-face--${size} is-devil`}>
+      <span className="devil-card__grain" aria-hidden="true" />
+      <div className="card-corner card-corner--tl devil-card__corner">
+        <span>{short}</span>
+        <span className="card-suit">{glyph}</span>
+      </div>
+
+      <div className="devil-card__sigil" aria-hidden="true">
+        <svg viewBox="0 0 100 132">
+          <path
+            className="devil-card__horn"
+            d="M42 38 C28 30 18 18 18 5 C32 10 41 19 47 30 Z"
+          />
+          <path
+            className="devil-card__horn"
+            d="M58 38 C72 30 82 18 82 5 C68 10 59 19 53 30 Z"
+          />
+          <path
+            className="devil-card__mask"
+            d="M50 25 C72 25 84 41 80 66 C77 86 66 102 50 116 C34 102 23 86 20 66 C16 41 28 25 50 25 Z"
+          />
+          <path className="devil-card__brow" d="M29 54 L45 49 L40 64 L27 61 Z" />
+          <path className="devil-card__brow" d="M71 54 L55 49 L60 64 L73 61 Z" />
+          <path className="devil-card__nose" d="M50 61 L43 79 L50 76 L57 79 Z" />
+          <path className="devil-card__mouth" d="M34 88 Q50 101 66 88 Q61 108 50 114 Q39 108 34 88 Z" />
+          <path className="devil-card__cut" d="M50 31 V48 M31 73 L42 78 M69 73 L58 78" />
+          <circle className="devil-card__eye" cx="36" cy="58" r="3.4" />
+          <circle className="devil-card__eye" cx="64" cy="58" r="3.4" />
+        </svg>
+      </div>
+
+      <span className="devil-card__title">Дьявол</span>
+      <span className="devil-card__seal" aria-hidden="true">VI</span>
+
+      <div className="card-corner card-corner--br devil-card__corner">
+        <span>{short}</span>
+        <span className="card-suit">{glyph}</span>
+      </div>
+      <div className="card-frame devil-card__frame" />
+    </div>
+  );
+}
+
 export function CardFace({ rank, size = "md", devil = false }: FaceProps) {
+  if (devil) return <DevilFace rank={rank} size={size} />;
+
   const glyph = SUIT_GLYPH[rank] ?? "?";
   const short = RANK_SHORT[rank as keyof typeof RANK_SHORT] ?? rank[0];
   const isJoker = rank === "JKR";
@@ -37,7 +87,7 @@ export function CardFace({ rank, size = "md", devil = false }: FaceProps) {
             textAnchor="middle"
             fontSize={isJoker ? 40 : 42}
             fontWeight="700"
-            fill={devil ? "#7a1220" : isJoker ? "#8c1f28" : "#221c20"}
+            fill={isJoker ? "#8c1f28" : "#221c20"}
             fontFamily="'Russo One', system-ui, sans-serif"
           >
             {short}
@@ -53,11 +103,6 @@ export function CardFace({ rank, size = "md", devil = false }: FaceProps) {
       </div>
       <div className="card-frame" />
       {isJoker && <span className="joker-badge">Джокер</span>}
-      {devil && (
-        <span className="devil-badge" title="Дьявол">
-          ☠ Дьявол
-        </span>
-      )}
     </div>
   );
 }
@@ -162,6 +207,7 @@ export function PlayingCard({
       aria-label={interactive ? label : undefined}
       tabIndex={interactive ? 0 : undefined}
       whileHover={interactive ? { y: -14 } : undefined}
+      whileTap={interactive ? { scale: 0.97 } : undefined}
       animate={{ rotateY: faceUp ? 0 : 180 }}
       transition={{ duration: 0.45, ease: [0.2, 0.9, 0.25, 1] }}
       style={{ transformStyle: "preserve-3d" }}
@@ -181,6 +227,20 @@ export function PlayingCard({
           {index}
         </span>
       )}
+      <AnimatePresence initial={false}>
+        {selected && (
+          <motion.span
+            className="playing-card__selected-mark"
+            initial={{ opacity: 0, scale: 0.35, rotate: -18 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.45, rotate: 12 }}
+            transition={{ type: "spring", stiffness: 520, damping: 22 }}
+            aria-hidden="true"
+          >
+            ✓
+          </motion.span>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

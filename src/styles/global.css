@@ -416,9 +416,30 @@ button {
   filter: saturate(0.7) brightness(0.82);
 }
 
-.playing-card.is-selected .card-face,
-.playing-card.is-selected .card-back {
-  box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(201, 162, 75, 0.5);
+.playing-card.is-selected {
+  z-index: 12;
+}
+
+.playing-card.is-selected::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  z-index: 6;
+  border: 3px solid #f1d58a;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(72, 38, 8, 0.95),
+    0 0 18px rgba(241, 213, 138, 0.92),
+    0 0 34px rgba(201, 162, 75, 0.52),
+    inset 0 0 0 1px rgba(255, 249, 220, 0.75);
+  pointer-events: none;
+  animation: selectedCardRing 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes selectedCardRing {
+  from { opacity: 0; transform: scale(0.9); }
+  65% { opacity: 1; transform: scale(1.035); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .card-side {
@@ -903,6 +924,10 @@ button {
   margin-left: -26px;
 }
 
+.hand__slot.is-selected {
+  z-index: 20;
+}
+
 .hand__slot:first-child {
   margin-left: 0;
 }
@@ -1128,13 +1153,41 @@ button {
   z-index: 45;
 }
 
+.overlay--reveal.is-devil-reveal {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(177, 18, 36, 0.34), transparent 36%),
+    rgba(8, 3, 6, 0.9);
+}
+
 .reveal {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 18px;
   perspective: 1100px;
   padding: 30px;
+}
+
+.reveal__devil-aura {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  width: min(430px, 82vw);
+  aspect-ratio: 1;
+  z-index: -1;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 76, 91, 0.38);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(239, 194, 113, 0.12) 0 3deg, transparent 3deg 30deg),
+    radial-gradient(circle, rgba(207, 26, 46, 0.3), transparent 66%);
+  box-shadow: inset 0 0 70px rgba(229, 30, 52, 0.18), 0 0 80px rgba(177, 18, 36, 0.2);
+  pointer-events: none;
+}
+
+.reveal.is-devil-reveal .reveal__cardslot {
+  filter: drop-shadow(0 0 28px rgba(224, 43, 61, 0.5));
 }
 
 .reveal__cards {
@@ -1223,9 +1276,86 @@ button {
   text-shadow: 0 0 14px rgba(194, 39, 54, 0.6);
 }
 
+.roulette__timeline {
+  width: min(440px, 84vw);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roulette__timeline li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: rgba(236, 225, 205, 0.38);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.24s ease, transform 0.24s ease;
+}
+
+.roulette__timeline li::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: calc(-50% - 2px);
+  right: calc(50% + 7px);
+  height: 1px;
+  background: rgba(236, 225, 205, 0.14);
+}
+
+.roulette__timeline li:first-child::before {
+  display: none;
+}
+
+.roulette__timeline li > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(236, 225, 205, 0.3);
+  background: #171116;
+  box-shadow: 0 0 0 3px rgba(8, 6, 8, 0.8);
+}
+
+.roulette__timeline li.is-done,
+.roulette__timeline li.is-active {
+  color: var(--gold);
+}
+
+.roulette__timeline li.is-done > span {
+  border-color: #8d6b2c;
+  background: #8d6b2c;
+}
+
+.roulette__timeline li.is-active {
+  transform: translateY(-2px);
+}
+
+.roulette__timeline li.is-active > span {
+  border-color: #ffe6a5;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px rgba(8, 6, 8, 0.8), 0 0 16px rgba(241, 213, 138, 0.95);
+  animation: rouletteStagePulse 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes rouletteStagePulse {
+  from { transform: scale(0.82); }
+  to { transform: scale(1.22); }
+}
+
 .roulette__scene {
   position: relative;
   width: min(460px, 86vw);
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .revolver-wrap {
@@ -1265,10 +1395,14 @@ button {
 }
 
 .roulette__result {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  position: relative;
+  z-index: 4;
+  display: flex;
+  min-height: 64px;
+  margin-top: -28px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-display);
   font-size: clamp(30px, 6vw, 52px);
   letter-spacing: 0.1em;
@@ -1730,6 +1864,19 @@ button {
     font-size: 13px;
   }
 
+  .roulette__timeline {
+    width: min(360px, 88vw);
+  }
+
+  .roulette__timeline li {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+
+  .roulette__scene {
+    min-height: 205px;
+  }
+
   .result {
     padding: 20px 14px;
     max-height: 92vh;
@@ -2073,6 +2220,30 @@ button {
   pointer-events: none;
 }
 
+.playing-card__selected-mark {
+  position: absolute;
+  top: -13px;
+  left: -13px;
+  z-index: 8;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff0b9;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #d8b85d, #8e651d);
+  color: #160e08;
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.65), 0 0 18px rgba(241, 213, 138, 0.72);
+  pointer-events: none;
+}
+
+.playing-card.is-selected .playing-card__key {
+  opacity: 0;
+}
+
 @media (hover: none) {
   .playing-card__key { display: none; }
 }
@@ -2085,23 +2256,149 @@ button {
 }
 
 .card-face.is-devil {
-  background: linear-gradient(160deg, #f2dede 0%, #e9c9c9 55%, #dcb3b3 100%);
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(238, 48, 68, 0.38), transparent 31%),
+    radial-gradient(circle at 50% 125%, rgba(174, 20, 38, 0.72), transparent 44%),
+    linear-gradient(155deg, #210509 0%, #650c18 48%, #a51d2d 100%);
+  border-color: #d34a58;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.72),
+    inset 0 0 30px rgba(255, 65, 80, 0.16);
 }
 
-.devil-badge {
+.card-face.is-devil::after {
+  content: "";
   position: absolute;
-  bottom: 22px;
+  inset: -30% -55%;
+  z-index: 5;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 226, 171, 0.24) 49%, transparent 58%);
+  transform: translateX(-55%) skewX(-12deg);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.playing-card.is-devil-card.is-clickable:hover .card-face.is-devil::after {
+  transform: translateX(55%) skewX(-12deg);
+}
+
+.devil-card__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.22;
+  background:
+    repeating-linear-gradient(118deg, transparent 0 8px, rgba(255, 214, 176, 0.12) 9px 10px),
+    repeating-radial-gradient(circle at 50% 45%, transparent 0 8px, rgba(0, 0, 0, 0.22) 9px 10px);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.devil-card__corner {
+  z-index: 4;
+  color: #ffe5bd;
+  text-shadow: 0 1px 2px #180205, 0 0 8px rgba(255, 99, 110, 0.72);
+}
+
+.devil-card__corner .card-suit {
+  color: #ff8a96;
+}
+
+.devil-card__sigil {
+  position: absolute;
+  inset: 8% 12% 17%;
+  z-index: 2;
+  filter: drop-shadow(0 0 8px rgba(255, 56, 75, 0.7));
+  animation: devilSigilBreath 2.6s ease-in-out infinite;
+}
+
+.devil-card__sigil svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.devil-card__horn {
+  fill: #130207;
+  stroke: #d34a58;
+  stroke-width: 2.2;
+}
+
+.devil-card__mask {
+  fill: #31070e;
+  stroke: #efc271;
+  stroke-width: 2;
+}
+
+.devil-card__brow,
+.devil-card__nose,
+.devil-card__mouth {
+  fill: #0d0205;
+  stroke: #bc2638;
+  stroke-width: 1.6;
+}
+
+.devil-card__cut {
+  fill: none;
+  stroke: rgba(239, 194, 113, 0.72);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.devil-card__eye {
+  fill: #ff4759;
+  filter: drop-shadow(0 0 4px #ff3145);
+}
+
+.devil-card__title {
+  position: absolute;
   left: 50%;
+  bottom: 8px;
+  z-index: 4;
   transform: translateX(-50%);
-  font-size: 8px;
+  color: #ffe1ae;
+  font-family: var(--font-display);
+  font-size: 9px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #7a1220;
+  text-shadow: 0 1px 2px #170205;
   white-space: nowrap;
 }
 
-.playing-card--sm .devil-badge,
-.playing-card--md .devil-badge { font-size: 7px; }
+.devil-card__seal {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  z-index: 4;
+  transform: translateX(-50%);
+  color: rgba(255, 222, 171, 0.66);
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+}
+
+.devil-card__frame {
+  inset: 5px;
+  z-index: 3;
+  border: 1px solid rgba(255, 208, 126, 0.72);
+  box-shadow:
+    inset 0 0 0 2px rgba(71, 2, 12, 0.86),
+    inset 0 0 18px rgba(255, 48, 68, 0.18);
+}
+
+@keyframes devilSigilBreath {
+  0%, 100% { transform: scale(0.98); filter: brightness(0.9); }
+  50% { transform: scale(1.025); filter: brightness(1.18); }
+}
+
+.card-face--sm .devil-card__sigil {
+  inset: 12% 14% 14%;
+}
+
+.card-face--sm .devil-card__title,
+.card-face--sm .devil-card__seal {
+  display: none;
+}
 
 .topbar__devil {
   padding: 6px 12px;
@@ -2217,8 +2514,8 @@ button {
 
 /* --- Вердикт «ДЬЯВОЛ» на вскрытии --- */
 .reveal__verdict.is-devil {
-  color: #b84a58;
-  text-shadow: 0 0 34px rgba(194, 39, 54, 0.8);
+  color: #ef6472;
+  text-shadow: 0 0 16px rgba(255, 68, 84, 0.96), 0 0 44px rgba(194, 39, 54, 0.78);
 }
 
 /* --- Пауза --- */
