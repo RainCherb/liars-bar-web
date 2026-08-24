@@ -22,7 +22,7 @@ function makeGame(variant: GameVariant = "classic"): ReturnType<typeof startGame
   return startGame({
     playerName: "Вы",
     playerCharacterId: null,
-    botCharacters: ["foxy", "toar", "kudo"],
+    botCharacters: ["foxy", "toar", "bristle"],
     difficulty: "normal",
     variant,
     firstSeat: 0,

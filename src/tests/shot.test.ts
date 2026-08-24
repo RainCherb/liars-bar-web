@@ -7,7 +7,7 @@ function makeGame(variant: GameVariant = "classic"): GameState {
   return startGame({
     playerName: "Вы",
     playerCharacterId: null,
-    botCharacters: ["foxy", "toar", "kudo"],
+    botCharacters: ["foxy", "toar", "bristle"],
     difficulty: "normal",
     variant,
     firstSeat: 0,

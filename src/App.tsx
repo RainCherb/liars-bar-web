@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { GameState } from "./game/types";
+import type { GameState, PlayerState } from "./game/types";
 import { useGameLoop, type GameSetup } from "./hooks/useGameLoop";
 import { sfx } from "./game/sounds";
 import {
@@ -17,9 +17,69 @@ import { GameTable } from "./components/GameTable";
 import { RulesModal } from "./components/RulesModal";
 import { OrientationGate } from "./components/OrientationGate";
 import { RevolverModal } from "./components/RevolverModal";
+import { ResultScreen } from "./components/ResultScreen";
 import { AnimatePresence } from "framer-motion";
 
 type Screen = "menu" | "game";
+
+const QA_RESULT_PLAYERS: PlayerState[] = [
+  {
+    seat: 0,
+    name: "Вы",
+    characterId: "foxy",
+    isHuman: true,
+    hand: [],
+    alive: false,
+    chambers: [],
+    bluffsMade: 3,
+    bluffsCaught: 2,
+    correctCalls: 2,
+    falseCalls: 1,
+    pullsSurvived: 2,
+  },
+  {
+    seat: 1,
+    name: "Cupcake",
+    characterId: "cupcake",
+    isHuman: false,
+    hand: [],
+    alive: true,
+    chambers: [false, true],
+    bluffsMade: 4,
+    bluffsCaught: 1,
+    correctCalls: 3,
+    falseCalls: 0,
+    pullsSurvived: 4,
+  },
+  {
+    seat: 2,
+    name: "Bristle",
+    characterId: "bristle",
+    isHuman: false,
+    hand: [],
+    alive: false,
+    chambers: [],
+    bluffsMade: 2,
+    bluffsCaught: 3,
+    correctCalls: 1,
+    falseCalls: 2,
+    pullsSurvived: 1,
+  },
+  {
+    seat: 3,
+    name: "Gerk",
+    characterId: "gerk",
+    isHuman: false,
+    hand: [],
+    alive: false,
+    chambers: [],
+    bluffsMade: 2,
+    bluffsCaught: 1,
+    correctCalls: 2,
+    falseCalls: 1,
+    pullsSurvived: 3,
+  },
+];
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("menu");
@@ -89,7 +149,7 @@ export default function App() {
   const isLocalQa =
     window.location.hostname === "127.0.0.1" ||
     window.location.hostname === "localhost";
-  const qaRoulette = isLocalQa
+  const qaScene = isLocalQa
     ? new URLSearchParams(window.location.search).get("qa")
     : null;
   const qaStageParam = isLocalQa
@@ -104,18 +164,33 @@ export default function App() {
     qaStageParam === "result"
       ? qaStageParam
       : undefined;
-  if (qaRoulette === "roulette-fired" || qaRoulette === "roulette-dry") {
+  if (qaScene === "roulette-fired" || qaScene === "roulette-dry") {
     return (
       <div className="app app--visual-qa">
         <RevolverModal
           open
           shooterName="Проверка механики"
-          fired={qaRoulette === "roulette-fired"}
+          fired={qaScene === "roulette-fired"}
           pullNumber={1}
           remainingChambers={6}
           index={1}
           total={1}
           stageOverride={qaStage}
+        />
+      </div>
+    );
+  }
+  if (qaScene === "result") {
+    return (
+      <div className="app app--visual-qa">
+        <ResultScreen
+          winnerName="Cupcake"
+          humanWon={false}
+          players={QA_RESULT_PLAYERS}
+          playerName="Вы"
+          rounds={7}
+          onRestart={() => undefined}
+          onExit={() => undefined}
         />
       </div>
     );

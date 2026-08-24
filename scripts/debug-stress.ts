@@ -40,7 +40,7 @@ for (let g = 0; g < 200; g++) {
   let s = startGame({
     playerName: `Стресс${g}`,
     playerCharacterId: null,
-    botCharacters: [["foxy"], ["foxy", "toar"], ["foxy", "toar", "kudo"]][g % 3],
+    botCharacters: [["foxy"], ["foxy", "toar"], ["foxy", "toar", "bristle"]][g % 3],
     difficulty: ["easy", "normal", "hard"][g % 3],
     variant: g % 2 === 0 ? "classic" : "devil",
   });

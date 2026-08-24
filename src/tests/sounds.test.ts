@@ -76,7 +76,7 @@ describe("голосовые реплики", () => {
   });
 
   it("использует резервную реплику для персонажа без полного набора", () => {
-    engine.playVoice("kudo", "play", { count: 2, rank: "K" });
+    engine.playVoice("scubby", "play", { count: 2, rank: "K" });
 
     expect(FakeAudio.created).toHaveLength(1);
     expect(FakeAudio.created[0].src).toContain("audio/generic/two.wav");

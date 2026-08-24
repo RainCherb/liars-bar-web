@@ -1,7 +1,7 @@
 export const ROULETTE_STAGE_MS = {
   load: 650,
   cock: 550,
-  spin: 1050,
+  spin: 1750,
   aim: 500,
   impact: 650,
   result: 1000,

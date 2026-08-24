@@ -108,10 +108,7 @@ export type CharacterId =
   | "bristle"
   | "toar"
   | "cupcake"
-  | "gerk"
-  | "kudo"
-  | "mitzi"
-  | "grim";
+  | "gerk";
 
 /** Короткие реплики персонажа по поводам. */
 export interface CharacterLines {

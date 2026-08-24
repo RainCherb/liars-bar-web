@@ -16,7 +16,7 @@ function makeGame(variant: GameVariant = "classic"): GameState {
   return startGame({
     playerName: "Вы",
     playerCharacterId: null,
-    botCharacters: ["foxy", "toar", "kudo"],
+    botCharacters: ["foxy", "toar", "bristle"],
     difficulty: "normal",
     variant,
     firstSeat: 0,
@@ -204,7 +204,7 @@ describe("Решения бота", () => {
       const s = makeGame();
       s.tableRank = "A";
       pileFrom(s, [2], "A");
-      s.players[3].characterId = "kudo";
+      s.players[3].characterId = "toar";
       s.players[3].hand = [
         { id: "g1", rank: "K" },
         { id: "g2", rank: "K" },
@@ -305,7 +305,7 @@ describe("Стресс: случайные партии без потери ин
       let s = startGame({
         playerName: `Стресс${g}`,
         playerCharacterId: null,
-        botCharacters: ([["foxy"], ["foxy", "toar"], ["foxy", "toar", "kudo"]][g % 3]) as CharacterId[],
+        botCharacters: ([["foxy"], ["foxy", "toar"], ["foxy", "toar", "bristle"]][g % 3]) as CharacterId[],
         difficulty: (["easy", "normal", "hard"] as const)[g % 3],
         variant,
       });
@@ -337,7 +337,7 @@ describe("Стресс: случайные партии без потери ин
       let s = startGame({
         playerName: "Дьявол",
         playerCharacterId: null,
-        botCharacters: ["cupcake", "gerk", "mitzi"],
+        botCharacters: ["cupcake", "gerk", "bristle"],
         difficulty: "normal",
         variant: "devil",
       });

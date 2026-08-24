@@ -97,7 +97,7 @@ try {
   await page.waitForTimeout(900);
   await shot(page, "01-menu");
 
-  await page.locator(".menu__char", { hasText: "Kudo" }).click();
+  await page.locator(".menu__char", { hasText: "Cupcake" }).click();
   await page.locator(".menu__diff button", { hasText: "Акула бара" }).click();
   await page.locator(".menu__bots button", { hasText: "дуэль" }).click();
   await page.waitForTimeout(300);

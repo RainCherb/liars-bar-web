@@ -142,7 +142,7 @@ export function RevolverModal({
     : fullGunMotion;
 
   const gunDuration =
-    stage === "spin" ? 0.96 : stage === "impact" ? (fired ? 0.58 : 0.46) : 0.48;
+    stage === "spin" ? 1.62 : stage === "impact" ? (fired ? 0.58 : 0.46) : 0.48;
 
   return (
     <AnimatePresence>

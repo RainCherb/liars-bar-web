@@ -1559,26 +1559,29 @@ button {
 }
 
 .revolver__cylinder.is-first-spin {
-  animation: cylinderFullSpin 1s cubic-bezier(0.17, 0.72, 0.18, 1) both;
+  animation: cylinderFullSpin 1.68s cubic-bezier(0.12, 0.72, 0.16, 1) both;
 }
 
 .revolver__cylinder.is-indexing {
-  animation: cylinderIndex 0.74s cubic-bezier(0.18, 0.86, 0.24, 1) both;
+  animation: cylinderIndex 1.28s cubic-bezier(0.18, 0.86, 0.24, 1) both;
 }
 
 @keyframes cylinderFullSpin {
   0% { transform: rotate(var(--cylinder-from)); }
-  28% { transform: rotate(calc(var(--cylinder-from) + 120deg)); }
-  66% { transform: rotate(calc(var(--cylinder-from) + 310deg)); }
-  86% { transform: rotate(calc(var(--cylinder-to) + 374deg)); }
-  94% { transform: rotate(calc(var(--cylinder-to) + 352deg)); }
-  100% { transform: rotate(calc(var(--cylinder-to) + 360deg)); }
+  20% { transform: rotate(calc(var(--cylinder-from) + 170deg)); }
+  48% { transform: rotate(calc(var(--cylinder-from) + 440deg)); }
+  72% { transform: rotate(calc(var(--cylinder-from) + 660deg)); }
+  88% { transform: rotate(calc(var(--cylinder-to) + 738deg)); }
+  95% { transform: rotate(calc(var(--cylinder-to) + 708deg)); }
+  100% { transform: rotate(calc(var(--cylinder-to) + 720deg)); }
 }
 
 @keyframes cylinderIndex {
   0% { transform: rotate(var(--cylinder-from)); }
-  70% { transform: rotate(calc(var(--cylinder-to) + 8deg)); }
-  88% { transform: rotate(calc(var(--cylinder-to) - 3deg)); }
+  24% { transform: rotate(calc(var(--cylinder-from) + 18deg)); }
+  52% { transform: rotate(calc(var(--cylinder-from) + 42deg)); }
+  76% { transform: rotate(calc(var(--cylinder-to) + 9deg)); }
+  90% { transform: rotate(calc(var(--cylinder-to) - 4deg)); }
   100% { transform: rotate(var(--cylinder-to)); }
 }
 
@@ -1852,37 +1855,135 @@ button {
 }
 
 .result {
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(180deg, var(--panel2), var(--panel));
   border: 1px solid var(--gold-dim);
-  border-radius: 16px;
-  padding: 30px 34px;
-  width: min(720px, 100%);
+  border-radius: 20px;
+  padding: 24px 28px;
+  width: min(560px, 100%);
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.75);
 }
 
-.result__title {
-  font-family: var(--font-display);
-  font-size: clamp(30px, 5vw, 46px);
-  letter-spacing: 0.12em;
+.result::before {
+  content: "";
+  position: absolute;
+  inset: -45% 12% auto;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 162, 75, 0.18), transparent 68%);
+  pointer-events: none;
 }
 
-.is-win .result__title {
-  color: var(--good);
-  text-shadow: 0 0 34px rgba(88, 160, 107, 0.55);
+.result__winnercard {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 94px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(201, 162, 75, 0.32);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(201, 162, 75, 0.16), transparent 38%),
+    linear-gradient(112deg, rgba(44, 31, 35, 0.96), rgba(18, 14, 17, 0.94));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 34px rgba(5, 3, 5, 0.42);
+  text-align: left;
 }
 
-.is-lose .result__title {
+.result__winnerportrait {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(201, 162, 75, 0.45);
+  border-radius: 22px;
+  background: rgba(9, 7, 9, 0.72);
+  box-shadow: inset 0 0 0 4px rgba(201, 162, 75, 0.05), 0 0 28px rgba(201, 162, 75, 0.14);
+}
+
+.result__winnerportrait::before {
+  content: "♛";
+  position: absolute;
+  top: -17px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--gold);
+  font-size: 24px;
+  text-shadow: 0 0 16px rgba(201, 162, 75, 0.72);
+}
+
+.result__winnerportrait > span {
   color: var(--blood-bright);
-  text-shadow: 0 0 34px rgba(194, 39, 54, 0.6);
+  font-size: 48px;
+}
+
+.result__winnercopy {
+  min-width: 0;
+}
+
+.result__eyebrow {
+  margin-bottom: 5px;
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.result__winnername {
+  overflow-wrap: anywhere;
+  color: #f4df9f;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5vw, 48px);
+  letter-spacing: 0.055em;
+  line-height: 1;
+  text-shadow: 0 8px 28px rgba(201, 162, 75, 0.24);
+}
+
+.result__verdict {
+  margin-top: 7px;
+  color: rgba(236, 225, 205, 0.7);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .result__sub {
   color: var(--muted);
-  font-size: 14.5px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.result__details {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  text-align: left;
+}
+
+.result__details > summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.result__details > summary:hover {
+  color: #f4df9f;
+}
+
+.result__tablewrap {
+  margin-top: 10px;
+  overflow-x: auto;
 }
 
 .result__stats {
@@ -1913,6 +2014,8 @@ button {
 }
 
 .result__actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   gap: 12px;
@@ -3313,12 +3416,14 @@ button {
   .hand {
     width: 100%;
     min-height: 0;
-    height: clamp(96px, 25vh, 112px);
-    flex: 0 0 clamp(96px, 25vh, 112px);
+    height: clamp(108px, 28vh, 124px);
+    flex: 0 0 clamp(108px, 28vh, 124px);
     display: grid;
-    grid-template-columns: minmax(260px, 1fr) minmax(260px, 340px);
+    grid-template-columns: minmax(132px, 1fr) minmax(260px, 1.18fr) minmax(132px, 1fr);
+    grid-template-rows: minmax(0, 1fr) 14px;
     align-items: center;
-    gap: clamp(12px, 3vw, 34px);
+    column-gap: clamp(7px, 1.5vw, 14px);
+    row-gap: 3px;
     margin: 0;
     padding: 3px 8px max(3px, env(safe-area-inset-bottom));
     background:
@@ -3331,24 +3436,26 @@ button {
   }
 
   .hand__cards {
+    grid-column: 2;
+    grid-row: 1 / -1;
     width: 100%;
     min-width: 0;
     height: 100%;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding: 16px 12px 4px;
+    padding: 17px 8px 3px;
     overflow: visible;
-    transform: translateY(-6px);
+    transform: translateY(-5px);
   }
 
   .hand .playing-card--md {
-    width: clamp(54px, 7vw, 68px);
-    height: clamp(76px, 9.8vw, 95px);
+    width: clamp(66px, 8vw, 78px);
+    height: clamp(92px, 11.2vw, 109px);
   }
 
   .hand__slot {
-    margin-left: clamp(-22px, -2.2vw, -16px);
+    margin-left: clamp(-27px, -2.8vw, -21px);
   }
 
   .hand__slot:first-child {
@@ -3356,12 +3463,7 @@ button {
   }
 
   .hand__actions {
-    width: 100%;
-    max-width: none;
-    display: grid;
-    grid-template-rows: 1fr auto;
-    align-items: center;
-    gap: 7px;
+    display: contents;
   }
 
   .hand__hint {
@@ -3369,24 +3471,35 @@ button {
   }
 
   .hand__buttons {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    display: contents;
   }
 
   .hand__buttons > .btn {
-    width: 100%;
+    grid-row: 1;
+    width: min(100%, 170px);
     min-width: 0;
     min-height: 44px;
-    padding: 7px 10px;
-    font-size: clamp(9px, 1.2vw, 11px);
+    padding: 8px 10px;
+    font-size: clamp(9px, 1.15vw, 11px);
     line-height: 1.15;
   }
 
+  .hand__buttons > .btn:first-child {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .hand__buttons > .btn:last-child {
+    grid-column: 3;
+    justify-self: end;
+  }
+
   .hand__timer {
-    width: 100%;
-    align-self: center;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: min(100%, 520px);
+    justify-self: center;
+    align-self: end;
     gap: 7px;
   }
 
@@ -3411,6 +3524,54 @@ button {
       max(10px, env(safe-area-inset-right))
       max(6px, env(safe-area-inset-bottom))
       max(10px, env(safe-area-inset-left));
+  }
+
+  .result {
+    width: min(540px, 96vw);
+    max-height: calc(100dvh - 16px);
+    padding: 16px 20px;
+    gap: 9px;
+    overflow-y: auto;
+  }
+
+  .result__winnercard {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 13px;
+    padding: 10px 12px;
+  }
+
+  .result__winnerportrait,
+  .result__winnerportrait svg {
+    width: 68px;
+    height: 68px;
+  }
+
+  .result__winnerportrait {
+    border-radius: 17px;
+  }
+
+  .result__winnerportrait::before {
+    top: -14px;
+    font-size: 20px;
+  }
+
+  .result__winnername {
+    font-size: clamp(27px, 4.4vw, 40px);
+  }
+
+  .result__verdict,
+  .result__sub {
+    font-size: 11px;
+  }
+
+  .result__details[open] .result__tablewrap {
+    max-height: 102px;
+    overflow: auto;
+  }
+
+  .result__actions .btn {
+    min-height: 42px;
+    padding-block: 8px;
   }
 
   .roulette {
@@ -3540,18 +3701,49 @@ button {
   }
 
   .hand {
-    grid-template-columns: minmax(230px, 1fr) minmax(230px, 280px);
-    gap: 8px;
+    grid-template-columns: minmax(96px, 1fr) minmax(214px, 1.24fr) minmax(96px, 1fr);
+    height: 108px;
+    flex-basis: 108px;
+    column-gap: 6px;
   }
 
   .hand .playing-card--md {
-    width: 52px;
-    height: 73px;
+    width: 62px;
+    height: 87px;
+  }
+
+  .hand__slot {
+    margin-left: -25px;
   }
 
   .hand__buttons > .btn {
     min-height: 44px;
     padding-inline: 6px;
     font-size: 8.5px;
+  }
+
+  .result {
+    width: min(500px, 97vw);
+    padding: 12px 14px;
+    gap: 7px;
+  }
+
+  .result__winnercard {
+    grid-template-columns: 58px minmax(0, 1fr);
+    padding: 8px 10px;
+  }
+
+  .result__winnerportrait,
+  .result__winnerportrait svg {
+    width: 54px;
+    height: 54px;
+  }
+
+  .result__winnername {
+    font-size: clamp(24px, 5.8vw, 32px);
+  }
+
+  .result__sub {
+    display: none;
   }
 }

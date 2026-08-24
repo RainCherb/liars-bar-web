@@ -317,9 +317,9 @@ export class SoundEngine {
         break;
       }
       case "spin": {
-        // Трещотка укладывается в визуальную фазу вращения (~1 секунда).
+        // Длинная трещотка укладывается в полную визуальную фазу вращения (~1,7 секунды).
         let time = t;
-        for (let i = 0; i < 11; i++) {
+        for (let i = 0; i < 20; i++) {
           const src = ctx.createBufferSource();
           src.buffer = this.noiseBuffer(ctx, 0.03);
           const filter = ctx.createBiquadFilter();
@@ -330,7 +330,7 @@ export class SoundEngine {
           g.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
           src.connect(filter).connect(g).connect(this.master);
           src.start(time);
-          time += 0.035 + i * 0.009;
+          time += 0.035 + i * 0.0045;
         }
         break;
       }
