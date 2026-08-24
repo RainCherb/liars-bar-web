@@ -1,0 +1,34 @@
+{
+  "name": "liars-bar-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Бар лжецов — веб-версия карточного режима Liar's Deck против ИИ-ботов",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:stress": "vite-node scripts/debug-stress.ts",
+    "test:visual": "node scripts/screenshots.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@fontsource/russo-one": "^5.1.0",
+    "framer-motion": "^11.11.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "playwright": "^1.62.1",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}

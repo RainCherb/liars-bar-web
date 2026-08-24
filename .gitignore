@@ -1,0 +1,11 @@
+node_modules/
+dist/
+shots/
+Audio_Extracted/
+vitest-out.txt
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
