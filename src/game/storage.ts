@@ -13,6 +13,10 @@ export interface Settings {
   muted: boolean;
   /** Ограничение времени на ход (канон: 30 с). */
   timerEnabled: boolean;
+  /** Выбранная длительность хода для локальной и сетевой партии. */
+  turnSeconds: 15 | 30 | 45 | 60;
+  /** Быстрый запуск текущей одиночной партии вместо создания комнаты. */
+  playWithBots: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -23,6 +27,8 @@ export const DEFAULT_SETTINGS: Settings = {
   variant: "classic",
   muted: false,
   timerEnabled: true,
+  turnSeconds: 30,
+  playWithBots: false,
 };
 
 export interface Stats {
@@ -117,6 +123,10 @@ export function loadSettings(): Settings {
       : "classic",
     muted: !!s.muted,
     timerEnabled: s.timerEnabled !== false,
+    turnSeconds: ([15, 30, 45, 60] as const).includes(s.turnSeconds as 15 | 30 | 45 | 60)
+      ? s.turnSeconds
+      : 30,
+    playWithBots: s.playWithBots === true,
   };
 }
 

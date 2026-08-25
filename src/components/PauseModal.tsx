@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 interface Props {
   onResume: () => void;
   onRules: () => void;
-  onRestart: () => void;
+  onRestart?: () => void;
   onExit: () => void;
+  online?: boolean;
 }
 
-export function PauseModal({ onResume, onRules, onRestart, onExit }: Props) {
+export function PauseModal({ onResume, onRules, onRestart, onExit, online = false }: Props) {
   const first = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -29,7 +30,9 @@ export function PauseModal({ onResume, onRules, onRestart, onExit }: Props) {
       >
         <h2 className="pause__title">Пауза</h2>
         <p className="pause__hint">
-          Стол ждёт. Боты не ходят, время не идёт.
+          {online
+            ? "Меню открыто только у вас. Онлайн-партия и таймер продолжаются."
+            : "Стол ждёт. Боты не ходят, время не идёт."}
         </p>
         <div className="pause__actions">
           <button
@@ -43,9 +46,11 @@ export function PauseModal({ onResume, onRules, onRestart, onExit }: Props) {
           <button type="button" className="btn" onClick={onRules}>
             Правила
           </button>
-          <button type="button" className="btn" onClick={onRestart}>
-            Новая партия
-          </button>
+          {onRestart && (
+            <button type="button" className="btn" onClick={onRestart}>
+              Новая партия
+            </button>
+          )}
           <button type="button" className="btn btn--ghost" onClick={onExit}>
             Покинуть бар
           </button>

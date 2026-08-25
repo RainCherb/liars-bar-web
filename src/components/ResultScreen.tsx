@@ -11,7 +11,7 @@ interface Props {
   players: PlayerState[];
   playerName: string;
   rounds: number;
-  onRestart: () => void;
+  onRestart?: () => void;
   onExit: () => void;
 }
 
@@ -133,15 +133,17 @@ export function ResultScreen({
         </details>
 
         <div className="result__actions">
-          <button
-            ref={first}
-            type="button"
-            className="btn btn--primary btn--big"
-            onClick={onRestart}
-          >
-            Сыграть ещё раз, {playerName}
-          </button>
-          <button type="button" className="btn" onClick={onExit}>
+          {onRestart && (
+            <button
+              ref={first}
+              type="button"
+              className="btn btn--primary btn--big"
+              onClick={onRestart}
+            >
+              Сыграть ещё раз, {playerName}
+            </button>
+          )}
+          <button ref={onRestart ? undefined : first} type="button" className="btn" onClick={onExit}>
             В меню
           </button>
         </div>

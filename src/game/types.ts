@@ -199,6 +199,8 @@ export type Phase =
       /** Гнёзд оставалось под курок до спуска (6..1). */
       remainingChambers: number;
       fired: boolean;
+      /** Онлайн: сервер ещё не раскрыл результат текущего спуска. */
+      resultPending?: boolean;
       /** Порядковый номер выстрела в серии (1..total). */
       index: number;
       total: number;

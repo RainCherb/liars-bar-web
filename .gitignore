@@ -1,5 +1,6 @@
 node_modules/
 dist/
+server-dist/
 shots/
 Audio_Extracted/
 vitest-out.txt

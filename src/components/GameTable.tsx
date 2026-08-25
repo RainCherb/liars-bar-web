@@ -20,7 +20,8 @@ interface Props {
   muted: boolean;
   onToggleMute: () => void;
   onExit: () => void;
-  onRestart: () => void;
+  onRestart?: () => void;
+  online?: boolean;
   paused: boolean;
   onPause: (paused: boolean) => void;
 }
@@ -32,6 +33,7 @@ export function GameTable({
   onToggleMute,
   onExit,
   onRestart,
+  online = false,
   paused,
   onPause,
 }: Props) {
@@ -304,6 +306,7 @@ export function GameTable({
         paused={paused}
         shooterName={roulette ? state.players[roulette.shooter].name : ""}
         fired={roulette?.fired ?? false}
+        outcomePending={roulette?.resultPending ?? false}
         pullNumber={roulette?.pullNumber ?? 1}
         remainingChambers={roulette?.remainingChambers ?? 6}
         index={roulette?.index ?? 1}
@@ -331,11 +334,12 @@ export function GameTable({
         <PauseModal
           onResume={() => setMenu(null)}
           onRules={() => setMenu("rules")}
-          onRestart={() => {
+          onRestart={online || !onRestart ? undefined : () => {
             setMenu(null);
             onRestart();
           }}
           onExit={onExit}
+          online={online}
         />
       )}
     </div>

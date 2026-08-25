@@ -99,6 +99,50 @@ export interface StartOptions {
   firstSeat?: number;
 }
 
+/** A human player supplied by the authoritative network room. */
+export interface NetworkPlayer {
+  name: string;
+  characterId: CharacterId | null;
+}
+
+/**
+ * Starts the same rules engine used by the local game, but with an all-human
+ * table. Keeping this here means network play cannot drift from local rules.
+ */
+export function startNetworkGame(
+  playersInput: NetworkPlayer[],
+  options: Pick<StartOptions, "difficulty" | "variant" | "firstSeat">,
+): GameState {
+  if (playersInput.length < 2) {
+    throw new Error("Network game requires at least two players");
+  }
+  const players = playersInput.map((player, seat) =>
+    makePlayer(seat, player.name.trim() || `Player ${seat + 1}`, player.characterId, true),
+  );
+  const firstSeat = options.firstSeat === undefined
+    ? Math.floor(rng() * players.length)
+    : Math.max(0, Math.min(players.length - 1, options.firstSeat));
+  const state: GameState = {
+    players,
+    deck: [],
+    discard: [],
+    tableRank: "Q",
+    devilActive: false,
+    pile: [],
+    currentSeat: firstSeat,
+    roundNumber: 1,
+    phase: { kind: "idle" },
+    log: [],
+    logSeq: 0,
+    difficulty: options.difficulty,
+    variant: options.variant ?? "classic",
+    roundStarter: firstSeat,
+  };
+  dealRound(state, firstSeat);
+  startRoundLog(state);
+  return state;
+}
+
 export function startGame(opts: StartOptions): GameState {
   const {
     playerName,

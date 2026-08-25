@@ -13,7 +13,7 @@ import type {
   GameState,
   GameVariant,
 } from "../game/types";
-import { MAX_PLAY_CARDS, TURN_SECONDS } from "../game/types";
+import { MAX_PLAY_CARDS } from "../game/types";
 import {
   canChallenge as canChallengeRule,
   getRng,
@@ -34,6 +34,7 @@ export interface GameSetup {
   botCount: number;
   variant: GameVariant;
   timerEnabled: boolean;
+  turnSeconds?: number;
 }
 
 const BOT_THINK_MIN = 1400;
@@ -220,14 +221,15 @@ export function useGameLoop(setup: GameSetup, paused = false): GameApi {
       setSecondsLeft(null);
       return;
     }
-    setSecondsLeft(TURN_SECONDS);
+    const turnSeconds = Math.max(5, Math.floor(setup.turnSeconds ?? 30));
+    setSecondsLeft(turnSeconds);
     const started = Date.now();
     const iv = setInterval(() => {
-      const left = TURN_SECONDS - Math.floor((Date.now() - started) / 1000);
+      const left = turnSeconds - Math.floor((Date.now() - started) / 1000);
       setSecondsLeft(left > 0 ? left : 0);
     }, 250);
     return () => clearInterval(iv);
-  }, [turnKey, isMyTurn, paused, setup.timerEnabled]);
+  }, [turnKey, isMyTurn, paused, setup.timerEnabled, setup.turnSeconds]);
 
   // Истечение времени: обязан вскрывать — вскрываем, иначе кладём случайное.
   useEffect(() => {

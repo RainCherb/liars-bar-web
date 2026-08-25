@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { CHAMBERS } from "../game/types";
 import { sfx } from "../game/sounds";
@@ -14,6 +14,7 @@ interface Props {
   paused?: boolean;
   shooterName: string;
   fired: boolean;
+  outcomePending?: boolean;
   /** Номер спуска для стрелка (1..6). */
   pullNumber: number;
   /** Гнёзд оставалось до спуска (6..1): шанс выстрела 1 из N. */
@@ -61,6 +62,7 @@ export function RevolverModal({
   paused = false,
   shooterName,
   fired,
+  outcomePending = false,
   pullNumber,
   remainingChambers,
   index,
@@ -68,6 +70,8 @@ export function RevolverModal({
   stageOverride,
 }: Props) {
   const sceneId = `${shooterName}-${pullNumber}-${index}`;
+  const firedRef = useRef(fired);
+  firedRef.current = fired;
   const [scene, setScene] = useState<{ id: string; stage: RouletteStage }>({
     id: "",
     stage: "load",
@@ -107,11 +111,17 @@ export function RevolverModal({
     schedule("cock", "cock");
     schedule("spin", "spin");
     schedule("aim");
-    schedule("impact", fired ? "gunshot" : "dryClick");
+    schedule("impact");
     schedule("result");
 
     return () => timers.forEach(window.clearTimeout);
-  }, [open, paused, sceneId, fired, stageOverride]);
+  }, [open, paused, sceneId, stageOverride]);
+
+  useEffect(() => {
+    if (stage === "impact" && !outcomePending) {
+      sfx.play(firedRef.current ? "gunshot" : "dryClick");
+    }
+  }, [outcomePending, stage]);
 
   const spent = CHAMBERS - remainingChambers;
   const notch = 360 / CHAMBERS;
@@ -165,7 +175,7 @@ export function RevolverModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22 }}
           data-stage={stage}
-          data-outcome={fired ? "fired" : "dry"}
+          data-outcome={outcomePending ? "pending" : fired ? "fired" : "dry"}
           data-pull={pullNumber}
           data-reduced-motion={reduceMotion ? "true" : "false"}
           role="alertdialog"

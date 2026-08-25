@@ -5,12 +5,17 @@ import { DIFFICULTY_LABELS, VARIANT_LABELS } from "../game/types";
 import { CHARACTERS } from "../game/characters";
 import type { Settings, Stats } from "../game/storage";
 import { Avatar } from "./Avatar";
+import { normalizeRoomCode } from "../network/roomLinks";
 
 interface Props {
   settings: Settings;
   stats: Stats;
   onChange: (s: Settings) => void;
   onStart: (s: Settings) => void;
+  onCreateRoom: (s: Settings) => void;
+  onJoinRoom: (roomCode: string, s: Settings) => void;
+  onlineBusy?: boolean;
+  onlineError?: string | null;
   onShowRules: () => void;
   onResetStats: () => void;
 }
@@ -31,10 +36,15 @@ export function MenuScreen({
   stats,
   onChange,
   onStart,
+  onCreateRoom,
+  onJoinRoom,
+  onlineBusy = false,
+  onlineError = null,
   onShowRules,
   onResetStats,
 }: Props) {
   const [showStats, setShowStats] = useState(false);
+  const [roomCode, setRoomCode] = useState("");
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     onChange({ ...settings, [key]: value });
 
@@ -92,7 +102,7 @@ export function MenuScreen({
             />
           </label>
 
-          <div className="menu__field">
+          {settings.playWithBots && <div className="menu__field">
             <span id="diff-label">Сложность</span>
             <div className="menu__diff" role="radiogroup" aria-labelledby="diff-label">
               {(Object.keys(DIFFICULTY_LABELS) as Difficulty[]).map((d) => (
@@ -109,9 +119,9 @@ export function MenuScreen({
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
-          <div className="menu__field">
+          {settings.playWithBots && <div className="menu__field">
             <span id="bots-label">Соперники</span>
             <div
               className="menu__diff menu__bots"
@@ -134,7 +144,7 @@ export function MenuScreen({
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
           <div className="menu__field">
             <span id="variant-label">Режим</span>
@@ -160,23 +170,113 @@ export function MenuScreen({
           </div>
         </div>
 
-        <label className="menu__check">
+        <div className="menu__online-options">
+          <label className="menu__check menu__check--mode">
+            <input
+              type="checkbox"
+              checked={settings.playWithBots}
+              onChange={(e) => set("playWithBots", e.target.checked)}
+            />
+            <span>
+              <b>Играть с ботами</b>
+              <small>Быстрая одиночная партия без создания комнаты</small>
+            </span>
+          </label>
+
+          <div className="menu__field menu__timer-field">
+            <span id="timer-label">Время на ход</span>
+            <div className="menu__diff menu__timer" role="radiogroup" aria-labelledby="timer-label">
+              {([0, 15, 30, 45, 60] as const).map((seconds) => {
+                const active = seconds === 0
+                  ? !settings.timerEnabled
+                  : settings.timerEnabled && settings.turnSeconds === seconds;
+                return (
+                  <button
+                    key={seconds}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    className={active ? "is-active" : ""}
+                    onClick={() => onChange({
+                      ...settings,
+                      timerEnabled: seconds !== 0,
+                      turnSeconds: seconds === 0 ? settings.turnSeconds : seconds,
+                    })}
+                  >
+                    {seconds === 0 ? "Без таймера" : `${seconds} с`}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {settings.playWithBots ? (
+          <label className="menu__check menu__check--note">
+            <span>Локальная партия продолжится, даже если интернет недоступен.</span>
+          </label>
+        ) : (
+          <section className="menu__join" aria-labelledby="join-title">
+            <div>
+              <span className="menu__join-kicker">Есть приглашение?</span>
+              <b id="join-title">Войти по коду комнаты</b>
+            </div>
+            <input
+              value={roomCode}
+              maxLength={6}
+              inputMode="text"
+              autoComplete="off"
+              placeholder="ABC234"
+              aria-label="Код комнаты"
+              onChange={(event) => setRoomCode(normalizeRoomCode(event.target.value))}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && roomCode.length === 6 && !onlineBusy) {
+                  onJoinRoom(roomCode, settings);
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="btn"
+              disabled={roomCode.length !== 6 || onlineBusy}
+              onClick={() => onJoinRoom(roomCode, settings)}
+            >
+              Войти
+            </button>
+          </section>
+        )}
+
+        {onlineError && <p className="menu__online-error" role="alert">{onlineError}</p>}
+
+        {/* Старый checkbox сохранён семантически через выбор значения выше. */}
+        <label className="menu__check sr-only">
           <input
             type="checkbox"
             checked={settings.timerEnabled}
             onChange={(e) => set("timerEnabled", e.target.checked)}
           />
-          <span>Ограничение хода 30 секунд (как в оригинале)</span>
+          <span>Ограничение времени хода</span>
         </label>
 
         <div className="menu__actions">
-          <button
-            type="button"
-            className="btn btn--primary btn--big"
-            onClick={() => onStart(settings)}
-          >
-            Сесть за стол
-          </button>
+          {settings.playWithBots ? (
+            <button
+              type="button"
+              className="btn btn--primary btn--big"
+              onClick={() => onStart(settings)}
+            >
+              Играть с ботами
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn btn--primary btn--big"
+              disabled={onlineBusy}
+              onClick={() => onCreateRoom(settings)}
+            >
+              {onlineBusy ? "Создаём комнату…" : "Создать комнату"}
+            </button>
+          )}
           <button type="button" className="btn" onClick={onShowRules}>
             Правила
           </button>

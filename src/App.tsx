@@ -19,8 +19,16 @@ import { OrientationGate } from "./components/OrientationGate";
 import { RevolverModal } from "./components/RevolverModal";
 import { ResultScreen } from "./components/ResultScreen";
 import { AnimatePresence } from "framer-motion";
+import { OnlineLobbyScreen } from "./components/OnlineLobbyScreen";
+import { createOnlineRoom, useOnlineRoom } from "./hooks/useOnlineRoom";
+import { createJoinUrl, roomCodeFromLocation } from "./network/roomLinks";
 
-type Screen = "menu" | "game";
+type Screen = "menu" | "game" | "online";
+
+interface OnlineIntent {
+  roomCode: string;
+  wantsHost: boolean;
+}
 
 const QA_RESULT_PLAYERS: PlayerState[] = [
   {
@@ -82,11 +90,17 @@ const QA_RESULT_PLAYERS: PlayerState[] = [
 ];
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("menu");
+  const invitedRoom = roomCodeFromLocation();
+  const [screen, setScreen] = useState<Screen>(invitedRoom ? "online" : "menu");
   const [showRules, setShowRules] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [stats, setStats] = useState<Stats>(() => loadStats());
   const [gameKey, setGameKey] = useState(0);
+  const [onlineIntent, setOnlineIntent] = useState<OnlineIntent | null>(() =>
+    invitedRoom ? { roomCode: invitedRoom, wantsHost: false } : null,
+  );
+  const [onlineBusy, setOnlineBusy] = useState(false);
+  const [onlineError, setOnlineError] = useState<string | null>(null);
 
   // Настройки переживают перезагрузку.
   useEffect(() => {
@@ -108,6 +122,7 @@ export default function App() {
     botCount: settings.botCount,
     variant: settings.variant,
     timerEnabled: settings.timerEnabled,
+    turnSeconds: settings.turnSeconds,
   };
 
   const start = (next: Settings) => {
@@ -121,6 +136,45 @@ export default function App() {
   const restart = () => {
     sfx.play("uiClick");
     setGameKey((k) => k + 1);
+  };
+
+  const openOnlineRoom = (roomCode: string, wantsHost: boolean, next: Settings) => {
+    sfx.unlock();
+    sfx.play("uiClick");
+    setSettings({ ...next, playWithBots: false });
+    setOnlineError(null);
+    setOnlineIntent({ roomCode, wantsHost });
+    const url = new URL(window.location.href);
+    url.searchParams.set("room", roomCode);
+    window.history.replaceState({}, "", url);
+    setScreen("online");
+  };
+
+  const createRoom = async (next: Settings) => {
+    setOnlineBusy(true);
+    setOnlineError(null);
+    try {
+      const roomCode = await createOnlineRoom({
+        variant: next.variant,
+        turnSeconds: next.timerEnabled ? next.turnSeconds : 0,
+      });
+      openOnlineRoom(roomCode, true, next);
+    } catch (error) {
+      setOnlineError(error instanceof Error ? error.message : "Не удалось создать комнату");
+    } finally {
+      setOnlineBusy(false);
+    }
+  };
+
+  const joinRoom = (roomCode: string, next: Settings) =>
+    openOnlineRoom(roomCode, false, next);
+
+  const exitOnline = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("room");
+    window.history.replaceState({}, "", url);
+    setOnlineIntent(null);
+    setScreen("menu");
   };
 
   const recordOutcome = useCallback((state: GameState) => {
@@ -226,10 +280,14 @@ export default function App() {
           stats={stats}
           onChange={setSettings}
           onStart={start}
+          onCreateRoom={createRoom}
+          onJoinRoom={joinRoom}
+          onlineBusy={onlineBusy}
+          onlineError={onlineError}
           onShowRules={() => setShowRules(true)}
           onResetStats={() => setStats(clearStats())}
         />
-      ) : (
+      ) : screen === "game" ? (
         <LandscapeGame
           key={gameKey}
           setup={setup}
@@ -239,7 +297,17 @@ export default function App() {
           onRestart={restart}
           onGameEnd={recordOutcome}
         />
-      )}
+      ) : onlineIntent ? (
+        <OnlineExperience
+          key={`${onlineIntent.roomCode}-${onlineIntent.wantsHost}`}
+          intent={onlineIntent}
+          settings={settings}
+          muted={settings.muted}
+          onToggleMute={toggleMute}
+          onExit={exitOnline}
+          onGameEnd={recordOutcome}
+        />
+      ) : null}
 
       {showRules && (
         <RulesModal
@@ -248,6 +316,90 @@ export default function App() {
         />
       )}
     </div>
+  );
+}
+
+interface OnlineExperienceProps {
+  intent: OnlineIntent;
+  settings: Settings;
+  muted: boolean;
+  onToggleMute: () => void;
+  onExit: () => void;
+  onGameEnd: (state: GameState) => void;
+}
+
+function OnlineExperience({
+  intent,
+  settings,
+  muted,
+  onToggleMute,
+  onExit,
+  onGameEnd,
+}: OnlineExperienceProps) {
+  const portrait = usePortraitPhone();
+  const [paused, setPaused] = useState(false);
+  const room = useOnlineRoom({
+    roomCode: intent.roomCode,
+    playerName: settings.playerName,
+    characterId: settings.characterId,
+    wantsHost: intent.wantsHost,
+    paused: paused || portrait,
+  });
+  const recorded = useRef(false);
+
+  useEffect(() => {
+    if (room.game?.state.phase.kind === "gameover" && !recorded.current) {
+      recorded.current = true;
+      onGameEnd(room.game.state);
+    }
+  }, [onGameEnd, room.game?.state]);
+
+  const leave = () => {
+    room.leaveRoom();
+    onExit();
+  };
+
+  if (!room.game) {
+    return (
+      <OnlineLobbyScreen
+        room={room}
+        inviteUrl={createJoinUrl(room.roomCode)}
+        onExit={leave}
+      />
+    );
+  }
+
+  const onlineSetup: GameSetup = {
+    playerName: settings.playerName,
+    characterId: settings.characterId,
+    difficulty: "normal",
+    botCount: 0,
+    variant: room.settings.variant,
+    timerEnabled: room.settings.turnSeconds > 0,
+    turnSeconds: room.settings.turnSeconds || 30,
+  };
+
+  return (
+    <>
+      <GameTable
+        api={room.game}
+        setup={onlineSetup}
+        muted={muted}
+        onToggleMute={onToggleMute}
+        onExit={leave}
+        onRestart={room.isHost ? room.startGame : undefined}
+        online
+        paused={paused || portrait}
+        onPause={setPaused}
+      />
+      {room.connectionStatus !== "connected" && (
+        <div className="online-reconnect" role="status">
+          <span className="online-reconnect__spinner" aria-hidden="true" />
+          Восстанавливаем соединение с комнатой…
+        </div>
+      )}
+      <AnimatePresence>{portrait && <OrientationGate resumed />}</AnimatePresence>
+    </>
   );
 }
 
