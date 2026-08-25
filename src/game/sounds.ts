@@ -49,45 +49,57 @@ type VoiceKey =
 
 type VoiceProfile = Partial<Record<VoiceKey, string>>;
 
+const FEMININE_VOICE_BASE: VoiceProfile = {
+  liar: "audio/cupcake/liar.wav",
+  devil: "audio/cupcake/devil.wav",
+  threeCards: "audio/cupcake/three-cards.wav",
+  queen: "audio/cupcake/queen.wav",
+  queens: "audio/cupcake/queens.wav",
+  king: "audio/cupcake/king.wav",
+  kings: "audio/cupcake/kings.wav",
+  ace: "audio/cupcake/ace.wav",
+  aces: "audio/cupcake/aces.wav",
+};
+
+const MASCULINE_VOICE_BASE: VoiceProfile = {
+  liar: "audio/gerk/liar.wav",
+  devil: "audio/gerk/devil.wav",
+  threeCards: "audio/gerk/three-cards.wav",
+  queen: "audio/gerk/queen.wav",
+  queens: "audio/gerk/queens.wav",
+  king: "audio/gerk/king.wav",
+  kings: "audio/gerk/kings.wav",
+  ace: "audio/gerk/ace.wav",
+  aces: "audio/gerk/aces.wav",
+};
+
 const VOICE_PROFILES: Partial<Record<CharacterId, VoiceProfile>> = {
   scubby: {
-    devil: "audio/scubby/devil.wav",
-    threeCards: "audio/scubby/three-cards.wav",
+    ...FEMININE_VOICE_BASE,
   },
   foxy: {
+    ...FEMININE_VOICE_BASE,
     devil: "audio/foxy/devil.wav",
     threeCards: "audio/foxy/three-cards.wav",
     caughtLying: "audio/foxy/caught-lie.mp3",
   },
   bristle: {
+    ...MASCULINE_VOICE_BASE,
     devil: "audio/bristle/devil.wav",
     threeCards: "audio/bristle/three-cards.wav",
   },
   toar: {
+    ...MASCULINE_VOICE_BASE,
     devil: "audio/toar/devil.wav",
     threeCards: "audio/toar/three-cards.wav",
   },
   cupcake: {
-    liar: "audio/cupcake/liar.wav",
-    devil: "audio/cupcake/devil.wav",
-    threeCards: "audio/cupcake/three-cards.wav",
-    queen: "audio/cupcake/queen.wav",
-    queens: "audio/cupcake/queens.wav",
-    king: "audio/cupcake/king.wav",
-    kings: "audio/cupcake/kings.wav",
-    ace: "audio/cupcake/ace.wav",
-    aces: "audio/cupcake/aces.wav",
+    ...MASCULINE_VOICE_BASE,
+    devil: "audio/scubby/devil.wav",
+    threeCards: "audio/scubby/three-cards.wav",
   },
   gerk: {
-    liar: "audio/gerk/liar.wav",
-    devil: "audio/gerk/devil.wav",
-    threeCards: "audio/gerk/three-cards.wav",
-    queen: "audio/gerk/queen.wav",
-    queens: "audio/gerk/queens.wav",
-    king: "audio/gerk/king.wav",
-    kings: "audio/gerk/kings.wav",
-    ace: "audio/gerk/ace.wav",
-    aces: "audio/gerk/aces.wav",
+    ...MASCULINE_VOICE_BASE,
   },
 };
 

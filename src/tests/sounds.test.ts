@@ -40,17 +40,38 @@ describe("голосовые реплики", () => {
     engine.playVoice("cupcake", "challenge");
 
     expect(FakeAudio.created).toHaveLength(1);
-    expect(FakeAudio.created[0].src).toContain("audio/cupcake/liar.wav");
+    expect(FakeAudio.created[0].src).toContain("audio/gerk/liar.wav");
     expect(FakeAudio.created[0].preload).toBe("auto");
     expect(FakeAudio.created[0].play).toHaveBeenCalledOnce();
   });
 
+  it("сопоставляет голоса полу обновлённых портретов", () => {
+    expect(resolveVoicePath("scubby", "challenge")).toBe(
+      "audio/cupcake/liar.wav",
+    );
+    expect(resolveVoicePath("foxy", "play", { count: 1, rank: "Q" })).toBe(
+      "audio/cupcake/queen.wav",
+    );
+    expect(resolveVoicePath("bristle", "challenge")).toBe(
+      "audio/gerk/liar.wav",
+    );
+    expect(resolveVoicePath("toar", "play", { count: 1, rank: "K" })).toBe(
+      "audio/gerk/king.wav",
+    );
+    expect(resolveVoicePath("cupcake", "challenge")).toBe(
+      "audio/gerk/liar.wav",
+    );
+    expect(resolveVoicePath("gerk", "play", { count: 1, rank: "A" })).toBe(
+      "audio/gerk/ace.wav",
+    );
+  });
+
   it("озвучивает Дьявола только через отдельное событие вскрытия", () => {
     expect(resolveVoicePath("scubby", "play", { count: 1, rank: "Q" })).toBe(
-      "audio/generic/one.wav",
+      "audio/cupcake/queen.wav",
     );
     expect(resolveVoicePath("scubby", "devilRevealed")).toBe(
-      "audio/scubby/devil.wav",
+      "audio/cupcake/devil.wav",
     );
   });
 
@@ -63,13 +84,13 @@ describe("голосовые реплики", () => {
 
   it("подбирает форму номинала по числу заявленных карт", () => {
     expect(resolveVoicePath("cupcake", "play", { count: 1, rank: "K" })).toBe(
-      "audio/cupcake/king.wav",
+      "audio/gerk/king.wav",
     );
     expect(resolveVoicePath("cupcake", "play", { count: 2, rank: "K" })).toBe(
-      "audio/cupcake/kings.wav",
+      "audio/gerk/kings.wav",
     );
     expect(resolveVoicePath("cupcake", "play", { count: 3, rank: "K" })).toBe(
-      "audio/cupcake/three-cards.wav",
+      "audio/scubby/three-cards.wav",
     );
   });
 
@@ -82,8 +103,8 @@ describe("голосовые реплики", () => {
     );
   });
 
-  it("использует резервную реплику для персонажа без полного набора", () => {
-    engine.playVoice("scubby", "play", { count: 2, rank: "K" });
+  it("использует резервную реплику для игрока без выбранного персонажа", () => {
+    engine.playVoice(null, "play", { count: 2, rank: "K" });
 
     expect(FakeAudio.created).toHaveLength(1);
     expect(FakeAudio.created[0].src).toContain("audio/generic/two.wav");
