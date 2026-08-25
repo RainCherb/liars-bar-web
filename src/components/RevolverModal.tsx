@@ -129,7 +129,7 @@ export function RevolverModal({
     "--cylinder-to": `${finalRotation}deg`,
     transform:
       stage === "load"
-        ? `translateX(30px) rotate(${baseRotation}deg)`
+        ? `translate(-6px, 20px) rotate(${baseRotation - 16}deg)`
         : `rotate(${afterSpin ? finalRotation : baseRotation}deg)`,
   } as CSSProperties;
 

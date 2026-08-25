@@ -1606,6 +1606,12 @@ button {
   filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.72));
 }
 
+.revolver__frame,
+.revolver__trigger-assembly,
+.revolver__hammer {
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.58));
+}
+
 .revolver__crane {
   opacity: 0.96;
 }
@@ -1626,7 +1632,7 @@ button {
   --cylinder-from: 0deg;
   --cylinder-to: 60deg;
   transform-box: view-box;
-  transform-origin: 198px 88px;
+  transform-origin: 352px 125px;
   will-change: transform;
   transition: transform 0.28s ease-out;
 }
