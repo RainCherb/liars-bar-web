@@ -42,6 +42,14 @@ export function RealisticRevolver({
   const loadingSlots = cartridgeLayout
     .map((state, slot) => ({ state, slot }))
     .filter(({ state }) => state !== "empty");
+  const cylinderOpen = stage === "load" || stage === "result";
+  const cylinderFaceStyle = {
+    ...cylinderStyle,
+    transform:
+      stage === "load"
+        ? "translate(-30px, 44px) rotate(calc(var(--cylinder-from) - 14deg))"
+        : "translate(-30px, 44px) rotate(var(--cylinder-to))",
+  } as CSSProperties;
 
   const chamberGeometry = Array.from({ length: CHAMBERS }, (_, slot) => {
     const radians = ((slot * NOTCH - 90) * Math.PI) / 180;
@@ -237,61 +245,100 @@ export function RealisticRevolver({
         <circle cx="384" cy="194" r="5.5" fill="#191d21" stroke="#858c92" strokeOpacity="0.7" strokeWidth="1.4" />
       </g>
 
-      <circle cx={CYLINDER_X + 8} cy={CYLINDER_Y + 1} r="61" fill="#050608" stroke="#666d73" strokeWidth="2.2" opacity="0.96" />
-      <g
-        className={`revolver__cylinder ${stage === "spin" ? `is-spinning ${pullNumber === 1 ? "is-first-spin" : "is-indexing"}` : ""}`}
-        data-testid="revolver-cylinder"
-        style={cylinderStyle}
-      >
-        <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="58" fill="url(#rev-cylinder)" stroke="#030405" strokeWidth="4" />
-        <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="54" fill="none" stroke="#c3c8cc" strokeOpacity="0.28" strokeWidth="1.5" />
-        <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="45" fill="none" stroke="#07090b" strokeWidth="1.6" strokeDasharray="2 4" />
-
-        {chamberGeometry.map(({ slot, cx, cy }) => {
-          const cartridge = cartridgeLayout[slot];
-          const hasCartridge = cartridge !== "empty";
-          return (
+      <AnimatePresence initial={false}>
+        {cylinderOpen ? (
+          <motion.g key="open-cylinder" initial={{ opacity: 0, x: 9 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -5 }} transition={{ duration: 0.24 }}>
             <g
-              key={slot}
-              className="revolver__chamber"
-              data-chamber={slot}
-              data-cartridge={cartridge}
-              filter="url(#rev-inset)"
+              className="revolver__cylinder revolver__cylinder--open"
+              data-testid="revolver-cylinder"
+              style={cylinderFaceStyle}
             >
-              <circle cx={cx} cy={cy} r="12.4" fill="url(#rev-chamber)" stroke="#8b9298" strokeOpacity="0.58" strokeWidth="1.5" />
-              <circle cx={cx} cy={cy} r="9.8" fill="#020304" stroke="#15191d" strokeWidth="1.2" />
-              {hasCartridge && (
-                <motion.g
-                  initial={stage === "load" && !reduceMotion ? { opacity: 0, scale: 0.3 } : false}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: stage === "load" ? slot * 0.065 + 0.42 : 0, duration: 0.22 }}
-                  style={{ transformBox: "fill-box", transformOrigin: "center" }}
-                >
-                  <circle cx={cx} cy={cy} r="9.2" fill={cartridge === "spent" ? "url(#rev-spent-brass)" : "url(#rev-brass)"} stroke="#4a2a0c" strokeWidth="1.2" />
-                  <circle cx={cx} cy={cy} r="3.2" fill={cartridge === "spent" ? "#160d06" : "#f5d47b"} stroke="#6a4215" strokeWidth="1" />
-                  {cartridge === "spent" && <path d={`M${cx - 3.2} ${cy - 3}L${cx + 3.3} ${cy + 3.1}M${cx + 3.1} ${cy - 3.2}L${cx - 3.1} ${cy + 3.2}`} stroke="#090502" strokeWidth="1.15" opacity="0.9" />}
-                  <path d={`M${cx - 5.8} ${cy - 5.1}Q${cx} ${cy - 7.8} ${cx + 5.3} ${cy - 4.8}`} fill="none" stroke="#fff1ab" strokeOpacity="0.48" strokeWidth="1.1" />
-                </motion.g>
-              )}
+              <circle cx={CYLINDER_X + 8} cy={CYLINDER_Y + 1} r="61" fill="#050608" stroke="#666d73" strokeWidth="2.2" opacity="0.96" />
+              <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="58" fill="url(#rev-cylinder)" stroke="#030405" strokeWidth="4" />
+              <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="54" fill="none" stroke="#c3c8cc" strokeOpacity="0.28" strokeWidth="1.5" />
+              <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="45" fill="none" stroke="#07090b" strokeWidth="1.6" strokeDasharray="2 4" />
+
+              {chamberGeometry.map(({ slot, cx, cy }) => {
+                const cartridge = cartridgeLayout[slot];
+                const hasCartridge = cartridge !== "empty";
+                return (
+                  <g
+                    key={slot}
+                    className="revolver__chamber"
+                    data-chamber={slot}
+                    data-cartridge={cartridge}
+                    filter="url(#rev-inset)"
+                  >
+                    <circle cx={cx} cy={cy} r="12.4" fill="url(#rev-chamber)" stroke="#8b9298" strokeOpacity="0.58" strokeWidth="1.5" />
+                    <circle cx={cx} cy={cy} r="9.8" fill="#020304" stroke="#15191d" strokeWidth="1.2" />
+                    {hasCartridge && (
+                      <motion.g
+                        initial={stage === "load" && !reduceMotion ? { opacity: 0, scale: 0.3 } : false}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: stage === "load" ? slot * 0.065 + 0.42 : 0, duration: 0.22 }}
+                        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+                      >
+                        <circle cx={cx} cy={cy} r="9.2" fill={cartridge === "spent" ? "url(#rev-spent-brass)" : "url(#rev-brass)"} stroke="#4a2a0c" strokeWidth="1.2" />
+                        <circle cx={cx} cy={cy} r="3.2" fill={cartridge === "spent" ? "#160d06" : "#f5d47b"} stroke="#6a4215" strokeWidth="1" />
+                        {cartridge === "spent" && <path d={`M${cx - 3.2} ${cy - 3}L${cx + 3.3} ${cy + 3.1}M${cx + 3.1} ${cy - 3.2}L${cx - 3.1} ${cy + 3.2}`} stroke="#090502" strokeWidth="1.15" opacity="0.9" />}
+                        <path d={`M${cx - 5.8} ${cy - 5.1}Q${cx} ${cy - 7.8} ${cx + 5.3} ${cy - 4.8}`} fill="none" stroke="#fff1ab" strokeOpacity="0.48" strokeWidth="1.1" />
+                      </motion.g>
+                    )}
+                  </g>
+                );
+              })}
+
+              <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="13" fill="url(#rev-steel-edge)" stroke="#06080a" strokeWidth="2.4" />
+              <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="4.1" fill="#aab0b5" stroke="#171b1f" strokeWidth="1.2" />
+              {Array.from({ length: CHAMBERS }, (_, slot) => (
+                <path
+                  key={`ratchet-${slot}`}
+                  d="M349 110L352 104L355 110"
+                  fill="#727980"
+                  stroke="#0b0d10"
+                  strokeWidth="0.8"
+                  transform={`rotate(${slot * NOTCH} ${CYLINDER_X} ${CYLINDER_Y})`}
+                />
+              ))}
             </g>
-          );
-        })}
+          </motion.g>
+        ) : (
+          <motion.g
+            key="closed-cylinder"
+            className="revolver__cylinder-side"
+            data-testid="revolver-cylinder"
+            data-live-count={cartridgeLayout.filter((state) => state === "live").length}
+            data-spent-count={cartridgeLayout.filter((state) => state === "spent").length}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 8 }}
+            transition={{ duration: 0.24 }}
+          >
+            <path d="M291 86Q279 91 279 105V145Q279 160 291 166H404Q419 160 419 145V105Q419 91 404 86Z" fill="url(#rev-cylinder)" stroke="#030405" strokeWidth="4" />
+            <ellipse cx="292" cy="126" rx="14" ry="39" fill="url(#rev-steel-edge)" stroke="#050608" strokeWidth="2.5" />
+            <ellipse cx="404" cy="126" rx="13" ry="38" fill="#12161a" stroke="#81888e" strokeOpacity="0.58" strokeWidth="2" />
+            <path d="M300 91H399" stroke="#e9ecee" strokeOpacity="0.2" strokeWidth="2.4" strokeLinecap="round" />
+            <motion.g
+              animate={stage === "spin" && !reduceMotion ? { y: [0, 12, -10, 7, 0], opacity: [1, 0.5, 0.72, 0.56, 1] } : { y: 0, opacity: 1 }}
+              transition={{ duration: stage === "spin" ? 2.05 : 0.22, ease: [0.12, 0.72, 0.16, 1] }}
+            >
+              <path d="M304 96Q325 88 342 99Q327 110 303 107Z" fill="#090b0e" stroke="#697077" strokeOpacity="0.42" strokeWidth="1.3" />
+              <path d="M310 116Q343 106 374 117Q349 131 308 129Z" fill="#090b0e" stroke="#697077" strokeOpacity="0.42" strokeWidth="1.3" />
+              <path d="M304 145Q327 132 348 145Q329 158 303 155Z" fill="#090b0e" stroke="#697077" strokeOpacity="0.42" strokeWidth="1.3" />
+              <path d="M356 96Q379 88 398 100Q384 111 361 108Z" fill="#090b0e" stroke="#697077" strokeOpacity="0.42" strokeWidth="1.3" />
+              <path d="M361 145Q382 133 400 144Q385 158 362 155Z" fill="#090b0e" stroke="#697077" strokeOpacity="0.42" strokeWidth="1.3" />
+            </motion.g>
+            <path d="M287 93V159M410 94V158" stroke="#b0b6bb" strokeOpacity="0.25" strokeWidth="1.4" />
+            <path d="M289 165Q347 172 407 165" fill="none" stroke="#050608" strokeWidth="2.4" />
+            {stage === "spin" && !reduceMotion && (
+              <motion.g initial={{ opacity: 0 }} animate={{ opacity: [0, 0.3, 0.12, 0] }} transition={{ duration: 2.05 }}>
+                <path d="M298 102H402M293 124H407M298 149H402" stroke="#cfd4d7" strokeOpacity="0.3" strokeWidth="1.1" strokeDasharray="18 8" />
+              </motion.g>
+            )}
+          </motion.g>
+        )}
+      </AnimatePresence>
 
-        <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="13" fill="url(#rev-steel-edge)" stroke="#06080a" strokeWidth="2.4" />
-        <circle cx={CYLINDER_X} cy={CYLINDER_Y} r="4.1" fill="#aab0b5" stroke="#171b1f" strokeWidth="1.2" />
-        {Array.from({ length: CHAMBERS }, (_, slot) => (
-          <path
-            key={`ratchet-${slot}`}
-            d="M349 110L352 104L355 110"
-            fill="#727980"
-            stroke="#0b0d10"
-            strokeWidth="0.8"
-            transform={`rotate(${slot * NOTCH} ${CYLINDER_X} ${CYLINDER_Y})`}
-          />
-        ))}
-      </g>
-
-      <path d="M343 54H361L352 66Z" fill="#c7a85d" stroke="#513813" strokeWidth="1.3" filter="drop-shadow(0 0 3px rgba(245,207,116,.55))" />
       <path d="M431 109L447 107L450 121L435 124Z" fill="#101317" stroke="#8d949a" strokeWidth="1.8" />
       <circle cx="441" cy="116" r="3" fill="#aeb4b9" />
 
@@ -307,10 +354,10 @@ export function RealisticRevolver({
                 initial={{ x: 545 + order * 7, y: 267 - order * 7, rotate: 30, opacity: 0, scale: 1 }}
                 animate={
                   reduceMotion
-                    ? { x: target.cx, y: target.cy + 18, rotate: 0, opacity: 0, scale: 0.5 }
+                    ? { x: target.cx - 30, y: target.cy + 44, rotate: 0, opacity: 0, scale: 0.5 }
                     : {
-                        x: [545 + order * 7, target.cx + 82, target.cx + 5],
-                        y: [267 - order * 7, target.cy + 60, target.cy + 20],
+                        x: [545 + order * 7, target.cx + 72, target.cx - 30],
+                        y: [267 - order * 7, target.cy + 70, target.cy + 44],
                         rotate: [30, 11, -16],
                         opacity: [0, 1, 1, 0],
                         scale: [1, 0.8, 0.48],
