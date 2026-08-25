@@ -202,15 +202,34 @@ export function RealisticRevolver({
         />
       </g>
 
-      <path d="M423 174Q451 183 474 207L532 274Q538 282 529 288H430Q414 286 420 269L439 203Z" fill="url(#rev-steel-edge)" stroke="#030405" strokeWidth="4" />
-      <path d="M443 188Q465 196 484 218L521 270Q527 279 516 281H439Q428 280 432 268L447 210Z" fill="url(#rev-walnut)" stroke="#160a07" strokeWidth="3" />
-      <path d="M447 199Q464 205 479 222L510 268Q514 274 506 275H444L451 217Z" fill="url(#rev-checker)" opacity="0.88" />
-      <path d="M443 188Q470 195 489 220" fill="none" stroke="#e8a16d" strokeOpacity="0.28" strokeWidth="2.6" />
-      <path d="M434 268Q461 258 518 271" fill="none" stroke="url(#rev-grip-light)" strokeWidth="11" opacity="0.9" />
-      <path d="M443 188Q465 196 484 218L521 270Q527 279 516 281H439Q428 280 432 268L447 210Z" fill="url(#rev-grip-light)" />
-      <circle cx="475" cy="239" r="6" fill="#24120c" stroke="#c17a48" strokeWidth="1.7" />
-      <path d="M472 239H478" stroke="#d49a72" strokeWidth="1.2" />
-      <path d="M434 286H527" stroke="#aeb3b8" strokeOpacity="0.55" strokeWidth="4" strokeLinecap="round" />
+      <g className="revolver__grip">
+        <path
+          d="M422 173Q448 178 468 197Q482 210 491 230L516 272Q524 288 507 295Q477 301 438 294Q418 290 421 272L438 205Z"
+          fill="url(#rev-steel-edge)"
+          stroke="#030405"
+          strokeWidth="4.2"
+        />
+        <path
+          d="M444 190Q462 194 477 209Q488 221 494 238L507 270Q512 282 500 287Q474 292 445 286Q432 283 435 269L448 211Z"
+          fill="url(#rev-walnut)"
+          stroke="#160a07"
+          strokeWidth="3"
+        />
+        <path
+          d="M448 202Q463 207 474 220Q482 232 486 248L496 270Q500 279 490 281Q470 284 450 279Q443 277 445 267L452 220Z"
+          fill="url(#rev-checker)"
+          opacity="0.84"
+        />
+        <path d="M444 191Q464 195 479 212Q487 221 492 233" fill="none" stroke="#e7a06c" strokeOpacity="0.34" strokeWidth="2.7" />
+        <path d="M440 270Q458 257 496 268" fill="none" stroke="#d07b49" strokeOpacity="0.2" strokeWidth="2.1" />
+        <path d="M438 279Q461 267 504 278" fill="none" stroke="#1b0a06" strokeOpacity="0.55" strokeWidth="1.7" />
+        <path d="M444 190Q462 194 477 209Q488 221 494 238L507 270Q512 282 500 287Q474 292 445 286Q432 283 435 269L448 211Z" fill="url(#rev-grip-light)" />
+        <circle cx="472" cy="236" r="7" fill="#21110b" stroke="#c98552" strokeWidth="1.8" />
+        <circle cx="472" cy="236" r="3.1" fill="#8e5635" stroke="#2a130b" strokeWidth="1" />
+        <path d="M470 233V239H475" fill="none" stroke="#e1aa7d" strokeWidth="1.1" strokeLinecap="round" />
+        <path d="M431 287Q465 299 509 289" fill="none" stroke="#aeb3b8" strokeOpacity="0.68" strokeWidth="4.2" strokeLinecap="round" />
+        <path d="M438 203L423 272Q420 286 434 290" fill="none" stroke="#8b9298" strokeOpacity="0.45" strokeWidth="2.4" />
+      </g>
 
       <g className="revolver__crane">
         <path d="M323 150Q307 184 332 199H383" fill="none" stroke="#0b0e11" strokeWidth="13" strokeLinecap="round" />
