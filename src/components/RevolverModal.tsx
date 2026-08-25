@@ -6,6 +6,8 @@ import {
   ROULETTE_STAGE_MS,
   type RouletteStage,
 } from "../game/roulettePresentation";
+import { cartridgeCountForPull } from "../game/revolverVisual";
+import { RealisticRevolver } from "./RealisticRevolver";
 
 interface Props {
   open: boolean;
@@ -116,20 +118,18 @@ export function RevolverModal({
   const baseRotation = spent * notch;
   const finalRotation = baseRotation + notch;
   const activeSlot = mod(Math.round(-finalRotation / notch), CHAMBERS);
-  // Для осечки патрон остаётся в другом гнезде и никогда не рисуется под ударником.
-  const bulletSlot = fired ? activeSlot : mod(activeSlot + 2, CHAMBERS);
+  const cartridgeCount = cartridgeCountForPull(pullNumber);
   const afterSpin = stage === "aim" || stage === "impact" || stage === "result";
   const showFlash = fired && stage === "impact";
   const showSmoke = fired && (stage === "impact" || stage === "result");
   const showBlood = fired && (stage === "impact" || stage === "result");
   const showDryPulse = !fired && stage === "impact";
-  const firstLoading = pullNumber === 1;
   const cylinderStyle = {
     "--cylinder-from": `${baseRotation}deg`,
     "--cylinder-to": `${finalRotation}deg`,
     transform:
-      stage === "load" && firstLoading
-        ? `translateX(23px) rotate(${baseRotation}deg)`
+      stage === "load"
+        ? `translateX(30px) rotate(${baseRotation}deg)`
         : `rotate(${afterSpin ? finalRotation : baseRotation}deg)`,
   } as CSSProperties;
 
@@ -214,7 +214,7 @@ export function RevolverModal({
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 18 }}
             >
-              Спуск №{pullNumber} · {remainingChambers > 1 ? `риск выстрела — 1 из ${remainingChambers}` : "выстрел неизбежен"}
+              Спуск №{pullNumber} · патронов в барабане — {cartridgeCount} из {CHAMBERS}
             </motion.p>
 
             <div className="roulette__scene">
@@ -226,80 +226,15 @@ export function RevolverModal({
                 animate={gunMotion}
                 transition={{ duration: reduceMotion ? 0.24 : gunDuration, ease: [0.2, 0.85, 0.25, 1] }}
               >
-                <svg viewBox="0 0 280 170" className="revolver" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0" stopColor="#5b5e68" /><stop offset="0.38" stopColor="#23242a" /><stop offset="0.72" stopColor="#3c3e47" /><stop offset="1" stopColor="#17181d" />
-                    </linearGradient>
-                    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" stopColor="#fff0a3" /><stop offset="0.38" stopColor="#d89d35" /><stop offset="1" stopColor="#714315" />
-                    </linearGradient>
-                  </defs>
-
-                  <rect x="14" y="70" width="130" height="25" rx="6" fill="url(#steel)" stroke="#0b0b0e" strokeWidth="3" />
-                  <motion.rect x="20" y="74" width="116" height="4" rx="2" fill="#d7d9e1" opacity="0.38" animate={{ opacity: showFlash ? [0.35, 1, 0.2] : [0.2, 0.48, 0.2] }} transition={{ duration: showFlash ? 0.28 : 1.8, repeat: showFlash ? 0 : Infinity }} />
-                  <rect x="8" y="68" width="14" height="29" rx="3" fill="#15161b" stroke="#050507" strokeWidth="2" />
-                  <path d="M132 62 L197 62 L214 120 Q220 150 190 157 L149 160 L149 108 Z" fill="url(#steel)" stroke="#09090c" strokeWidth="3" />
-                  <path d="M151 96 L185 96 L178 119 L151 120 Z" fill="#492b1c" stroke="#120b08" strokeWidth="2" />
-                  <path d="M154 100 Q150 130 169 130 L187 130" fill="none" stroke="#101116" strokeWidth="4" />
-                  <motion.path d="M160 104 L159 118 Q159 124 166 124" fill="none" stroke="#8b8e97" strokeWidth="3" animate={{ rotate: stage === "impact" ? 12 : 0 }} style={{ transformBox: "fill-box", transformOrigin: "top center" }} />
-
-                  <g>
-                    <circle cx="150" cy="78" r="31" fill="#1c1d22" stroke="#09090c" strokeWidth="3" />
-                    <g
-                      className={`revolver__cylinder ${stage === "spin" ? `is-spinning ${pullNumber === 1 ? "is-first-spin" : "is-indexing"}` : ""}`}
-                      data-testid="revolver-cylinder"
-                      style={cylinderStyle}
-                    >
-                      <circle cx="150" cy="78" r="27" fill="url(#steel)" stroke="#777b86" strokeWidth="1.3" />
-                      <circle cx="150" cy="78" r="22" fill="none" stroke="#14151a" strokeWidth="1" strokeDasharray="3 3" />
-                      {Array.from({ length: CHAMBERS }).map((_, slot) => {
-                        const rad = ((slot * notch - 90) * Math.PI) / 180;
-                        const cx = 150 + Math.cos(rad) * 16;
-                        const cy = 78 + Math.sin(rad) * 16;
-                        const hasBullet = slot === bulletSlot && !(fired && (stage === "impact" || stage === "result"));
-                        const spentCase = slot === bulletSlot && fired && (stage === "impact" || stage === "result");
-                        return (
-                          <g key={slot} data-chamber={slot} data-cartridge={hasBullet ? "live" : spentCase ? "spent" : "empty"}>
-                            <circle cx={cx} cy={cy} r="6.2" fill="#09090c" stroke={slot === bulletSlot ? "#d4a23f" : "#343640"} strokeWidth={slot === bulletSlot ? 1.5 : 1} />
-                            {(hasBullet || spentCase) && <circle cx={cx} cy={cy} r="4.65" fill={spentCase ? "#775323" : "url(#brass)"} />}
-                            {(hasBullet || spentCase) && <circle cx={cx} cy={cy} r="1.45" fill={spentCase ? "#21150c" : "#f7d67b"} stroke="#684116" strokeWidth="0.7" />}
-                            <path d={`M${cx - 2.6} ${cy - 3.8} L${cx + 2.6} ${cy - 3.8}`} stroke="rgba(255,255,255,.2)" strokeWidth="0.7" />
-                          </g>
-                        );
-                      })}
-                      <circle cx="150" cy="78" r="4.2" fill="#9da1ac" stroke="#272830" strokeWidth="1.5" />
-                      <path d="M148 51 L152 51" stroke="#f7d77d" strokeWidth="1.5" />
-                    </g>
-                    <path d="M146 44 L154 44 L150 51 Z" fill="#e1b85d" filter="drop-shadow(0 0 3px #ffd97b)" />
-                  </g>
-
-                  {stage === "load" && firstLoading && (
-                    <motion.g data-testid="loading-cartridge" initial={{ x: 72, y: 58, rotate: 38, opacity: 0 }} animate={reduceMotion ? { x: 20, y: 13, rotate: 0, opacity: 1 } : { x: [72, 52, 29, 20], y: [58, 45, 20, 13], rotate: [38, 24, 8, 0], opacity: [0, 1, 1, 1] }} transition={{ duration: 0.56, ease: [0.2, 0.9, 0.25, 1] }}>
-                      <rect x="142" y="50" width="16" height="29" rx="5" fill="url(#brass)" stroke="#5f3513" strokeWidth="1.3" />
-                      <path d="M143 54 L157 54" stroke="#fff0a3" strokeWidth="1.4" opacity="0.75" />
-                      <ellipse cx="150" cy="78" rx="8" ry="3.2" fill="#a96822" stroke="#4d2b11" strokeWidth="1" />
-                    </motion.g>
-                  )}
-
-                  <motion.path
-                    d="M198 60 L211 51 L215 64 L202 71 Z"
-                    fill="url(#steel)" stroke="#09090c" strokeWidth="2"
-                    style={{ transformBox: "view-box", transformOrigin: "202px 66px" }}
-                    animate={{ rotate: stage === "load" ? 0 : stage === "cock" || stage === "spin" || stage === "aim" ? -31 : stage === "impact" ? 15 : 2 }}
-                    transition={{ duration: stage === "cock" ? 0.46 : 0.13, ease: "easeOut" }}
-                  />
-
-                  <AnimatePresence>
-                    {showFlash && (
-                      <motion.g key="flash" data-testid="muzzle-flash" initial={{ opacity: 0, scale: 0.25 }} animate={{ opacity: [0, 1, 0.86, 0], scale: [0.25, 1.28, 0.94, 0.6], rotate: [0, -4, 3, 0] }} transition={{ duration: 0.44, ease: "easeOut" }} style={{ transformBox: "view-box", transformOrigin: "9px 82px" }}>
-                        <path d="M10 82 L-42 53 L-22 78 L-49 83 L-22 88 L-42 111 Z" fill="#ffb329" />
-                        <path d="M10 82 L-28 66 L-12 82 L-28 98 Z" fill="#fff8d6" />
-                        <circle cx="7" cy="82" r="14" fill="#fff0ad" opacity="0.9" />
-                      </motion.g>
-                    )}
-                  </AnimatePresence>
-                </svg>
+                <RealisticRevolver
+                  stage={stage}
+                  pullNumber={pullNumber}
+                  activeSlot={activeSlot}
+                  fired={fired}
+                  showFlash={showFlash}
+                  reduceMotion={Boolean(reduceMotion)}
+                  cylinderStyle={cylinderStyle}
+                />
 
                 {showFlash && <span className="revolver__shockwave" aria-hidden="true" />}
                 {showFlash && <span className="revolver__barrel-glow" aria-hidden="true" />}

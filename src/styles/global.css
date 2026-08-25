@@ -1580,8 +1580,8 @@ button {
 
 .roulette__scene {
   position: relative;
-  width: min(460px, 86vw);
-  min-height: 250px;
+  width: min(560px, 90vw);
+  min-height: 275px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1597,14 +1597,36 @@ button {
 .revolver {
   width: 100%;
   overflow: visible;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.65));
+  filter:
+    drop-shadow(0 18px 24px rgba(0, 0, 0, 0.72))
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.92));
+}
+
+.revolver__barrel-assembly {
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.72));
+}
+
+.revolver__crane {
+  opacity: 0.96;
+}
+
+.revolver__chamber[data-cartridge="live"] {
+  filter: drop-shadow(0 0 3px rgba(230, 178, 72, 0.34));
+}
+
+.revolver__chamber[data-cartridge="spent"] {
+  filter: drop-shadow(0 0 4px rgba(163, 55, 29, 0.45));
+}
+
+.revolver__loading-cartridge {
+  filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.72));
 }
 
 .revolver__cylinder {
   --cylinder-from: 0deg;
   --cylinder-to: 60deg;
   transform-box: view-box;
-  transform-origin: 150px 78px;
+  transform-origin: 198px 88px;
   will-change: transform;
   transition: transform 0.28s ease-out;
 }
@@ -1615,11 +1637,11 @@ button {
 }
 
 .revolver__cylinder.is-first-spin {
-  animation: cylinderFullSpin 1.68s cubic-bezier(0.12, 0.72, 0.16, 1) both;
+  animation: cylinderFullSpin 2.05s cubic-bezier(0.1, 0.7, 0.14, 1) both;
 }
 
 .revolver__cylinder.is-indexing {
-  animation: cylinderIndex 1.28s cubic-bezier(0.18, 0.86, 0.24, 1) both;
+  animation: cylinderIndex 1.82s cubic-bezier(0.14, 0.82, 0.2, 1) both;
 }
 
 @keyframes cylinderFullSpin {
@@ -1644,7 +1666,7 @@ button {
 .roulette__reticle {
   position: absolute;
   z-index: 0;
-  left: 9%;
+  left: 15.7%;
   top: 44%;
   width: 84px;
   height: 84px;
@@ -1690,7 +1712,7 @@ button {
 
 .revolver__smoke {
   position: absolute;
-  left: 2%;
+  left: 15.7%;
   top: 42%;
   width: 42px;
   height: 42px;
@@ -1723,7 +1745,7 @@ button {
 
 .revolver__shockwave {
   position: absolute;
-  left: 1.5%;
+  left: 15.7%;
   top: 48%;
   width: 24px;
   height: 24px;
@@ -1740,9 +1762,9 @@ button {
 
 .revolver__barrel-glow {
   position: absolute;
-  left: -7%;
+  left: 2%;
   top: 27%;
-  width: 34%;
+  width: 28%;
   height: 43%;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 228, 155, 0.7), rgba(255, 121, 37, 0.22) 42%, transparent 72%);
@@ -1762,7 +1784,7 @@ button {
   --spark-y: 0px;
   --spark-delay: 0ms;
   position: absolute;
-  left: 2%;
+  left: 15.7%;
   top: 48%;
   width: 11px;
   height: 2px;
@@ -3914,6 +3936,16 @@ button {
 }
 
 @media (orientation: landscape) and (max-height: 390px) and (max-width: 700px) {
+  .roulette {
+    grid-template-columns: minmax(150px, 0.72fr) minmax(0, 1.28fr);
+    column-gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .roulette__scene .revolver-wrap {
+    width: 90%;
+  }
+
   .menu {
     padding:
       max(6px, env(safe-area-inset-top))

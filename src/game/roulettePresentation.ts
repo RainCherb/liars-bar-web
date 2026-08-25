@@ -1,10 +1,10 @@
 export const ROULETTE_STAGE_MS = {
-  load: 650,
-  cock: 550,
-  spin: 1750,
-  aim: 500,
-  impact: 650,
-  result: 1000,
+  load: 1050,
+  cock: 620,
+  spin: 2150,
+  aim: 620,
+  impact: 760,
+  result: 1100,
 } as const;
 
 export const ROULETTE_PRESENTATION_MS = Object.values(ROULETTE_STAGE_MS).reduce(

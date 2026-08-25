@@ -155,6 +155,12 @@ export default function App() {
   const qaStageParam = isLocalQa
     ? new URLSearchParams(window.location.search).get("stage")
     : null;
+  const qaPullParam = isLocalQa
+    ? Number(new URLSearchParams(window.location.search).get("pull"))
+    : 1;
+  const qaPull = Number.isFinite(qaPullParam)
+    ? Math.max(1, Math.min(6, Math.round(qaPullParam)))
+    : 1;
   const qaStage =
     qaStageParam === "load" ||
     qaStageParam === "cock" ||
@@ -171,8 +177,8 @@ export default function App() {
           open
           shooterName="Проверка механики"
           fired={qaScene === "roulette-fired"}
-          pullNumber={1}
-          remainingChambers={6}
+          pullNumber={qaPull}
+          remainingChambers={7 - qaPull}
           index={1}
           total={1}
           stageOverride={qaStage}
