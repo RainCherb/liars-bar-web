@@ -3583,12 +3583,30 @@ button {
 
   .seat__taunt {
     bottom: calc(100% + 4px);
-    max-width: min(150px, 28vw);
-    padding: 4px 7px;
-    font-size: 10px;
-    line-height: 1.15;
+    max-width: min(180px, 32vw);
+    padding: 6px 10px;
+    border-color: rgba(241, 213, 138, 0.82);
+    background: rgba(13, 9, 11, 0.98);
+    color: #fff3d8;
+    font-size: clamp(10px, 1.45vw, 12px);
+    line-height: 1.2;
     text-align: center;
     white-space: normal;
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.76),
+      0 0 16px rgba(201, 162, 75, 0.2);
+  }
+
+  .scene__seats--top .seat__taunt {
+    top: calc(100% + 5px);
+    bottom: auto;
+  }
+
+  .scene__seats--top .seat__taunt::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: var(--gold-dim);
   }
 
   .felt {
@@ -3769,12 +3787,12 @@ button {
 
   .hand__buttons > .btn:first-child {
     grid-column: 1;
-    justify-self: start;
+    justify-self: end;
   }
 
   .hand__buttons > .btn:last-child {
     grid-column: 3;
-    justify-self: end;
+    justify-self: start;
   }
 
   .hand__timer {

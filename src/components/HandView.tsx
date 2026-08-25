@@ -202,20 +202,20 @@ export function HandView({
         <div className="hand__buttons">
           <button
             type="button"
+            className={`btn btn--danger ${mustChallenge ? "is-required" : ""}`}
+            disabled={!canChallenge}
+            onClick={onChallenge}
+          >
+            Обвинить во лжи!
+          </button>
+          <button
+            type="button"
             className="btn btn--primary"
             disabled={!canAct || mustChallenge || picked.length === 0}
             onClick={play}
           >
             Положить{" "}
             {picked.length > 0 ? cardsWord(picked.length).toLowerCase() : "карты"}
-          </button>
-          <button
-            type="button"
-            className={`btn btn--danger ${mustChallenge ? "is-required" : ""}`}
-            disabled={!canChallenge}
-            onClick={onChallenge}
-          >
-            Обвинить во лжи!
           </button>
         </div>
 
