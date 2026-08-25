@@ -7,6 +7,9 @@ class FakeAudio {
   src: string;
   preload = "";
   volume = 1;
+  playbackRate = 1;
+  preservesPitch = true;
+  webkitPreservesPitch = true;
   currentTime = 0;
   onended: (() => void) | null = null;
   pause = vi.fn();
@@ -64,6 +67,33 @@ describe("голосовые реплики", () => {
     expect(resolveVoicePath("gerk", "play", { count: 1, rank: "A" })).toBe(
       "audio/gerk/ace.wav",
     );
+  });
+
+  it("делает голос Scubby явно женским и не переносит настройку на Foxy", () => {
+    const scubbyVoicePaths = [
+      resolveVoicePath("scubby", "challenge"),
+      resolveVoicePath("scubby", "devilRevealed"),
+      resolveVoicePath("scubby", "play", { count: 1, rank: "Q" }),
+      resolveVoicePath("scubby", "play", { count: 2, rank: "K" }),
+      resolveVoicePath("scubby", "play", { count: 3, rank: "A" }),
+    ];
+    expect(scubbyVoicePaths.every((path) => path.startsWith("audio/cupcake/"))).toBe(
+      true,
+    );
+
+    engine.playVoice("scubby", "challenge");
+    const sharedFemaleVoice = FakeAudio.created[0];
+
+    expect(sharedFemaleVoice.playbackRate).toBe(1.18);
+    expect(sharedFemaleVoice.preservesPitch).toBe(false);
+    expect(sharedFemaleVoice.webkitPreservesPitch).toBe(false);
+
+    engine.playVoice("foxy", "challenge");
+
+    expect(FakeAudio.created).toHaveLength(1);
+    expect(sharedFemaleVoice.playbackRate).toBe(1);
+    expect(sharedFemaleVoice.preservesPitch).toBe(true);
+    expect(sharedFemaleVoice.webkitPreservesPitch).toBe(true);
   });
 
   it("озвучивает Дьявола только через отдельное событие вскрытия", () => {

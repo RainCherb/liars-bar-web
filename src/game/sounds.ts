@@ -119,6 +119,11 @@ const RANK_VOICE_KEYS: Record<Rank, readonly [VoiceKey, VoiceKey]> = {
   A: ["ace", "aces"],
 };
 
+/** Зайчихе нужен явно более высокий тембр, независимо от выбранной реплики. */
+const CHARACTER_VOICE_RATE: Partial<Record<CharacterId, number>> = {
+  scubby: 1.18,
+};
+
 /**
  * Единая карта голосовых событий. Она намеренно не принимает реальные карты:
  * до вскрытия звук не должен выдавать, был ли ход честным или содержал Дьявола.
@@ -205,7 +210,7 @@ export class SoundEngine {
     return audio;
   }
 
-  private playVoiceFile(path: string): void {
+  private playVoiceFile(path: string, playbackRate = 1): void {
     const audio = this.voice(path);
     if (!audio) return;
 
@@ -215,6 +220,11 @@ export class SoundEngine {
     }
 
     audio.currentTime = 0;
+    audio.playbackRate = playbackRate;
+    audio.preservesPitch = playbackRate === 1;
+    (
+      audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }
+    ).webkitPreservesPitch = playbackRate === 1;
     this.activeVoice = audio;
     audio.onended = () => {
       if (this.activeVoice === audio) this.activeVoice = null;
@@ -233,7 +243,9 @@ export class SoundEngine {
     if (this.muted) return;
 
     const path = resolveVoicePath(characterId, cue, options);
-    if (path) this.playVoiceFile(path);
+    if (path) {
+      this.playVoiceFile(path, characterId ? CHARACTER_VOICE_RATE[characterId] : 1);
+    }
   }
 
   /**
