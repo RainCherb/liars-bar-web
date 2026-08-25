@@ -24,7 +24,11 @@ export type SfxName =
  * `play` намеренно описывает только объявленную выкладку и никогда не зависит
  * от закрытых карт. Реплика `devilRevealed` допустима только после вскрытия.
  */
-export type VoiceCue = "play" | "challenge" | "devilRevealed";
+export type VoiceCue =
+  | "play"
+  | "challenge"
+  | "devilRevealed"
+  | "caughtLying";
 
 export interface VoiceOptions {
   count?: number;
@@ -40,7 +44,8 @@ type VoiceKey =
   | "king"
   | "kings"
   | "ace"
-  | "aces";
+  | "aces"
+  | "caughtLying";
 
 type VoiceProfile = Partial<Record<VoiceKey, string>>;
 
@@ -52,6 +57,7 @@ const VOICE_PROFILES: Partial<Record<CharacterId, VoiceProfile>> = {
   foxy: {
     devil: "audio/foxy/devil.wav",
     threeCards: "audio/foxy/three-cards.wav",
+    caughtLying: "audio/foxy/caught-lie.mp3",
   },
   bristle: {
     devil: "audio/bristle/devil.wav",
@@ -117,6 +123,9 @@ export function resolveVoicePath(
   }
   if (cue === "devilRevealed") {
     return profile?.devil ?? GENERIC_VOICES.devil;
+  }
+  if (cue === "caughtLying") {
+    return profile?.caughtLying ?? "";
   }
 
   const count = Math.max(1, Math.min(3, Math.round(options.count ?? 1))) as

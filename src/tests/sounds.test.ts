@@ -54,6 +54,13 @@ describe("голосовые реплики", () => {
     );
   });
 
+  it("включает новую реплику Foxy только когда её поймали на лжи", () => {
+    expect(resolveVoicePath("foxy", "caughtLying")).toBe(
+      "audio/foxy/caught-lie.mp3",
+    );
+    expect(resolveVoicePath("scubby", "caughtLying")).toBe("");
+  });
+
   it("подбирает форму номинала по числу заявленных карт", () => {
     expect(resolveVoicePath("cupcake", "play", { count: 1, rank: "K" })).toBe(
       "audio/cupcake/king.wav",

@@ -4,7 +4,6 @@ import { CHAMBERS } from "../game/types";
 import { sfx } from "../game/sounds";
 import {
   ROULETTE_STAGE_MS,
-  ROULETTE_STAGES,
   type RouletteStage,
 } from "../game/roulettePresentation";
 
@@ -36,6 +35,18 @@ const SPARKS = [
   [-29, -40],
   [-62, -24],
   [-21, 39],
+] as const;
+
+const BLOOD_DROPS = [
+  [16, 24, 13, -18, -34, 20],
+  [23, 35, 8, -42, -6, 45],
+  [30, 18, 10, 12, -48, 70],
+  [38, 29, 6, 48, -20, 95],
+  [19, 51, 7, -35, 42, 115],
+  [33, 58, 11, 28, 54, 135],
+  [46, 43, 5, 64, 18, 155],
+  [11, 66, 8, -24, 70, 175],
+  [52, 23, 6, 78, -38, 195],
 ] as const;
 
 /**
@@ -107,10 +118,10 @@ export function RevolverModal({
   const activeSlot = mod(Math.round(-finalRotation / notch), CHAMBERS);
   // Для осечки патрон остаётся в другом гнезде и никогда не рисуется под ударником.
   const bulletSlot = fired ? activeSlot : mod(activeSlot + 2, CHAMBERS);
-  const stageIndex = ROULETTE_STAGES.findIndex((item) => item.id === stage);
   const afterSpin = stage === "aim" || stage === "impact" || stage === "result";
   const showFlash = fired && stage === "impact";
   const showSmoke = fired && (stage === "impact" || stage === "result");
+  const showBlood = fired && (stage === "impact" || stage === "result");
   const showDryPulse = !fired && stage === "impact";
   const firstLoading = pullNumber === 1;
   const cylinderStyle = {
@@ -160,6 +171,36 @@ export function RevolverModal({
           role="alertdialog"
           aria-label="Русская рулетка"
         >
+          <AnimatePresence>
+            {showBlood && (
+              <motion.div
+                key={`blood-${sceneId}`}
+                className="roulette__blood"
+                aria-hidden="true"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <span className="roulette__blood-splash" />
+                {BLOOD_DROPS.map(([left, top, size, x, y, delay], drop) => (
+                  <i
+                    key={drop}
+                    className="roulette__blood-drop"
+                    style={
+                      {
+                        "--blood-left": `${left}%`,
+                        "--blood-top": `${top}%`,
+                        "--blood-size": `${size}px`,
+                        "--blood-x": `${x}px`,
+                        "--blood-y": `${y}px`,
+                        "--blood-delay": `${delay}ms`,
+                      } as CSSProperties
+                    }
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
           <motion.div className="roulette" initial={{ scale: 0.92, y: 18 }} animate={{ scale: 1, y: 0 }}>
             <p className="roulette__title">
               Русская рулетка
@@ -175,14 +216,6 @@ export function RevolverModal({
             >
               Спуск №{pullNumber} · {remainingChambers > 1 ? `риск выстрела — 1 из ${remainingChambers}` : "выстрел неизбежен"}
             </motion.p>
-
-            <ol className="roulette__timeline" aria-label="Этапы спуска">
-              {ROULETTE_STAGES.map((item, itemIndex) => (
-                <li key={item.id} className={itemIndex === stageIndex ? "is-active" : itemIndex < stageIndex ? "is-done" : ""}>
-                  <span aria-hidden="true" />{item.label}
-                </li>
-              ))}
-            </ol>
 
             <div className="roulette__scene">
               <div className={`roulette__reticle ${stage === "aim" ? "is-visible" : ""}`} aria-hidden="true" />
@@ -285,16 +318,6 @@ export function RevolverModal({
               </AnimatePresence>
             </div>
 
-            {stage !== "result" && (
-              <p className="roulette__hint">
-                {stage === "load"
-                  ? firstLoading ? "Патрон входит в откинутый барабан…" : "Боевой патрон остаётся в барабане…"
-                  : stage === "cock" ? "Барабан защёлкивается. Курок взводится…"
-                    : stage === "spin" ? pullNumber === 1 ? "Барабан быстро раскручивается…" : "Барабан переходит на следующее гнездо…"
-                      : stage === "aim" ? "Пустое или боевое — решит ударник…"
-                        : fired ? "Порох вспыхивает. Отдача бьёт в плечо…" : "Курок срывается. Под ударником пусто…"}
-              </p>
-            )}
           </motion.div>
         </motion.div>
       )}

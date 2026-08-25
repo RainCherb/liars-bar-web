@@ -1414,7 +1414,108 @@ button {
   z-index: 46;
 }
 
+.roulette__blood {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.roulette__blood::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 22% 45%, transparent 0 14%, rgba(76, 0, 8, 0.18) 44%, transparent 72%),
+    radial-gradient(ellipse at center, transparent 54%, rgba(76, 0, 8, 0.32) 100%);
+  animation: bloodVeil 1.2s ease-out both;
+}
+
+.roulette__blood-splash {
+  position: absolute;
+  left: 17%;
+  top: 43%;
+  width: clamp(150px, 28vw, 310px);
+  aspect-ratio: 1.25;
+  border-radius: 44% 56% 38% 62% / 58% 37% 63% 42%;
+  background:
+    radial-gradient(circle at 46% 48%, rgba(137, 3, 18, 0.96) 0 12%, transparent 13%),
+    radial-gradient(circle at 62% 39%, rgba(112, 0, 12, 0.94) 0 8%, transparent 9%),
+    radial-gradient(circle at 32% 65%, rgba(82, 0, 10, 0.9) 0 7%, transparent 8%),
+    radial-gradient(ellipse at center, rgba(119, 0, 14, 0.9) 0 37%, rgba(53, 0, 7, 0.82) 62%, transparent 64%);
+  filter: drop-shadow(0 6px 8px rgba(40, 0, 5, 0.5));
+  mix-blend-mode: multiply;
+  transform-origin: center;
+  animation: bloodSplash 0.82s cubic-bezier(0.16, 0.86, 0.28, 1) both;
+}
+
+.roulette__blood-splash::before,
+.roulette__blood-splash::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: #74000d;
+}
+
+.roulette__blood-splash::before {
+  left: -8%;
+  top: 26%;
+  width: 18%;
+  aspect-ratio: 1;
+  box-shadow: 18px -42px 0 -8px #8f0718, 58px 94px 0 -11px #62000b;
+}
+
+.roulette__blood-splash::after {
+  right: -5%;
+  bottom: 13%;
+  width: 12%;
+  aspect-ratio: 1;
+  box-shadow: 32px -54px 0 -7px #8f0718, -24px 68px 0 -8px #5d000a;
+}
+
+.roulette__blood-drop {
+  --blood-left: 20%;
+  --blood-top: 40%;
+  --blood-size: 8px;
+  --blood-x: 0px;
+  --blood-y: 0px;
+  --blood-delay: 0ms;
+  position: absolute;
+  left: var(--blood-left);
+  top: var(--blood-top);
+  width: var(--blood-size);
+  height: calc(var(--blood-size) * 1.35);
+  border-radius: 62% 38% 58% 42% / 71% 45% 55% 29%;
+  background: radial-gradient(circle at 38% 28%, #c52234, #76000d 58%, #3d0006 100%);
+  box-shadow: 0 2px 4px rgba(38, 0, 4, 0.5);
+  opacity: 0;
+  transform: translate(0, 0) scale(0.25) rotate(24deg);
+  animation: bloodDrop 0.72s var(--blood-delay) cubic-bezier(0.12, 0.72, 0.2, 1) forwards;
+}
+
+@keyframes bloodSplash {
+  0% { opacity: 0; transform: translate(-35%, -50%) scale(0.08) rotate(-18deg); }
+  36% { opacity: 1; transform: translate(-35%, -50%) scale(1.12) rotate(4deg); }
+  62% { transform: translate(-35%, -50%) scale(0.96) rotate(-2deg); }
+  100% { opacity: 0.78; transform: translate(-35%, -50%) scale(1) rotate(0); }
+}
+
+@keyframes bloodDrop {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(18deg); }
+  28% { opacity: 1; }
+  100% { opacity: 0.84; transform: translate(var(--blood-x), var(--blood-y)) scale(1) rotate(74deg); }
+}
+
+@keyframes bloodVeil {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0.58; }
+}
+
 .roulette {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1448,78 +1549,6 @@ button {
 .roulette__bullets.is-hot {
   color: var(--blood-bright);
   text-shadow: 0 0 14px rgba(194, 39, 54, 0.6);
-}
-
-.roulette__timeline {
-  width: min(440px, 84vw);
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 5px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.roulette__timeline li {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  color: rgba(236, 225, 205, 0.38);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: color 0.24s ease, transform 0.24s ease;
-}
-
-.roulette__timeline li::before {
-  content: "";
-  position: absolute;
-  top: 4px;
-  left: calc(-50% - 2px);
-  right: calc(50% + 7px);
-  height: 1px;
-  background: rgba(236, 225, 205, 0.14);
-}
-
-.roulette__timeline li:first-child::before {
-  display: none;
-}
-
-.roulette__timeline li > span {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 1px solid rgba(236, 225, 205, 0.3);
-  background: #171116;
-  box-shadow: 0 0 0 3px rgba(8, 6, 8, 0.8);
-}
-
-.roulette__timeline li.is-done,
-.roulette__timeline li.is-active {
-  color: var(--gold);
-}
-
-.roulette__timeline li.is-done > span {
-  border-color: #8d6b2c;
-  background: #8d6b2c;
-}
-
-.roulette__timeline li.is-active {
-  transform: translateY(-2px);
-}
-
-.roulette__timeline li.is-active > span {
-  border-color: #ffe6a5;
-  background: var(--gold);
-  box-shadow: 0 0 0 3px rgba(8, 6, 8, 0.8), 0 0 16px rgba(241, 213, 138, 0.95);
-  animation: rouletteStagePulse 0.7s ease-in-out infinite alternate;
-}
-
-@keyframes rouletteStagePulse {
-  from { transform: scale(0.82); }
-  to { transform: scale(1.22); }
 }
 
 .roulette__scene {
@@ -1791,18 +1820,6 @@ button {
 .roulette__result.is-safe {
   color: #9fd3ae;
   text-shadow: 0 0 30px rgba(88, 160, 107, 0.6);
-}
-
-.roulette__hint {
-  color: var(--muted);
-  font-style: italic;
-  font-size: 14px;
-  animation: hintFade 1.2s ease-in-out infinite;
-}
-
-@keyframes hintFade {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
 }
 
 .overlay--roulette.is-bang .roulette {
@@ -2350,15 +2367,6 @@ button {
 
   .roulette__bullets {
     font-size: 13px;
-  }
-
-  .roulette__timeline {
-    width: min(360px, 88vw);
-  }
-
-  .roulette__timeline li {
-    font-size: 7px;
-    letter-spacing: 0.06em;
   }
 
   .roulette__scene {
@@ -3827,7 +3835,8 @@ button {
     height: min(350px, 92vh);
     display: grid;
     grid-template-columns: minmax(210px, 0.72fr) minmax(360px, 1.28fr);
-    grid-template-rows: auto auto auto 1fr;
+    grid-template-rows: repeat(3, auto);
+    align-content: center;
     column-gap: 20px;
     row-gap: 7px;
     align-items: center;
@@ -3836,8 +3845,7 @@ button {
 
   .roulette__title,
   .roulette__who,
-  .roulette__bullets,
-  .roulette__timeline {
+  .roulette__bullets {
     grid-column: 1;
     width: 100%;
   }
@@ -3846,26 +3854,12 @@ button {
     align-self: end;
   }
 
-  .roulette__timeline {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  .roulette__timeline li {
-    font-size: 6px;
-  }
-
   .roulette__scene {
     grid-column: 2;
     grid-row: 1 / -1;
     width: 100%;
     min-height: 0;
     height: 100%;
-  }
-
-  .roulette__hint {
-    grid-column: 1;
-    align-self: start;
-    font-size: 11px;
   }
 
   .roulette__result {

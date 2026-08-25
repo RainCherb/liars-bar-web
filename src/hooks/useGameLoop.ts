@@ -157,6 +157,9 @@ export function useGameLoop(setup: GameSetup, paused = false): GameApi {
       if (phase.devil) {
         sfx.playVoice(accused.characterId, "devilRevealed");
       }
+      if (phase.wasLie && !phase.devil) {
+        sfx.playVoice(accused.characterId, "caughtLying");
+      }
       if (phase.wasLie && !accused.isHuman) {
         say(phase.accused, botLine(accused.characterId, "caught"));
       }
