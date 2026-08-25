@@ -75,7 +75,7 @@ export function MenuScreen({
                 onClick={() => set("characterId", c.id as CharacterId)}
                 title={c.title}
               >
-                <Avatar kind={c.kind} size={64} />
+                <Avatar characterId={c.id} size={64} />
                 <span className="menu__char-name">{c.name}</span>
               </button>
             ))}

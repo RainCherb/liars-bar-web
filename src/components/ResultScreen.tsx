@@ -59,7 +59,7 @@ export function ResultScreen({
             transition={{ delay: 0.34, type: "spring", stiffness: 260, damping: 18 }}
           >
             {winnerCharacter ? (
-              <Avatar kind={winnerCharacter.kind} size={86} />
+              <Avatar characterId={winnerCharacter.id} size={86} />
             ) : (
               <span aria-hidden="true">☠</span>
             )}

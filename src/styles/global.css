@@ -939,7 +939,7 @@ button {
   gap: 6px;
 }
 
-.seat.is-active .seat__avatar svg {
+.seat.is-active .seat__avatar .avatar-image {
   animation: seatBob 1.6s ease-in-out infinite;
 }
 
@@ -967,6 +967,33 @@ button {
   position: relative;
   width: 64px;
   height: 64px;
+}
+
+.avatar-image {
+  display: block;
+  object-fit: cover;
+  object-position: center 34%;
+  border-radius: 14px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.seat__avatar .avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(241, 213, 138, 0.14);
+}
+
+.menu__char .avatar-image {
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(4, 2, 3, 0.42);
+}
+
+.result__winnerportrait .avatar-image {
+  width: 86px;
+  height: 86px;
+  border-radius: 19px;
 }
 
 .seat__skull {
@@ -2099,7 +2126,7 @@ button {
     padding: 8px 4px 7px;
   }
 
-  .menu__char svg {
+  .menu__char .avatar-image {
     width: 46px;
     height: 46px;
   }
@@ -2196,7 +2223,7 @@ button {
   }
 
   .seat__avatar,
-  .seat__avatar svg {
+  .seat__avatar .avatar-image {
     width: 44px;
     height: 44px;
   }
@@ -2488,7 +2515,7 @@ button {
   }
 
   .seat__avatar,
-  .seat__avatar svg {
+  .seat__avatar .avatar-image {
     width: 30px;
     height: 30px;
   }
@@ -3204,7 +3231,7 @@ button {
     transform: translateY(-2px);
   }
 
-  .menu__char svg {
+  .menu__char .avatar-image {
     width: clamp(38px, 7.2vh, 48px);
     height: clamp(38px, 7.2vh, 48px);
   }
@@ -3459,7 +3486,7 @@ button {
   }
 
   .seat__avatar,
-  .seat__avatar svg {
+  .seat__avatar .avatar-image {
     width: 44px;
     height: 44px;
   }
@@ -3664,7 +3691,7 @@ button {
   }
 
   .scene__me .seat__avatar,
-  .scene__me .seat__avatar svg {
+  .scene__me .seat__avatar .avatar-image {
     width: 40px;
     height: 40px;
   }
@@ -3797,7 +3824,7 @@ button {
   }
 
   .result__winnerportrait,
-  .result__winnerportrait svg {
+  .result__winnerportrait .avatar-image {
     width: 68px;
     height: 68px;
   }
@@ -3929,7 +3956,7 @@ button {
     border-radius: 7px;
   }
 
-  .menu__char svg {
+  .menu__char .avatar-image {
     width: clamp(28px, 10vh, 34px);
     height: clamp(28px, 10vh, 34px);
   }
@@ -4041,7 +4068,7 @@ button {
   }
 
   .seat__avatar,
-  .seat__avatar svg {
+  .seat__avatar .avatar-image {
     width: 36px;
     height: 36px;
   }
@@ -4092,7 +4119,7 @@ button {
   }
 
   .scene__me .seat__avatar,
-  .scene__me .seat__avatar svg {
+  .scene__me .seat__avatar .avatar-image {
     width: 34px;
     height: 34px;
   }
@@ -4131,7 +4158,7 @@ button {
   }
 
   .result__winnerportrait,
-  .result__winnerportrait svg {
+  .result__winnerportrait .avatar-image {
     width: 54px;
     height: 54px;
   }

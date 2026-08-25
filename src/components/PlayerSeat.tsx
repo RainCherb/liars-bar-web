@@ -58,7 +58,7 @@ export function PlayerSeat({
       </AnimatePresence>
 
       <div className="seat__avatar">
-        <Avatar kind={character?.kind ?? "wolf"} size={64} />
+        <Avatar characterId={character?.id ?? "foxy"} size={64} />
         {!player.alive && (
           <span className="seat__skull" aria-label="мёртв">
             ✕
