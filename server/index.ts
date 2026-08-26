@@ -17,6 +17,10 @@ interface ClientMeta {
 }
 
 const PORT = Number(process.env.PORT ?? 8080);
+const requestedHeartbeatMs = Number(process.env.HEARTBEAT_INTERVAL_MS);
+const HEARTBEAT_INTERVAL_MS = Number.isFinite(requestedHeartbeatMs) && requestedHeartbeatMs >= 250
+  ? requestedHeartbeatMs
+  : 30_000;
 const DIST = resolve(process.cwd(), "dist");
 const rooms = new Map<string, Room>();
 const clients = new Map<AliveWebSocket, ClientMeta>();
@@ -117,7 +121,12 @@ async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> 
     req.on("end", () => {
       if (tooLarge) return;
       try {
-        resolveBody(body ? (JSON.parse(body) as Record<string, unknown>) : {});
+        const parsed = body ? (JSON.parse(body) as unknown) : {};
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          rejectBody(new Error("JSON body must be an object"));
+          return;
+        }
+        resolveBody(parsed as Record<string, unknown>);
       } catch {
         rejectBody(new Error("Некорректный JSON"));
       }
@@ -206,8 +215,20 @@ const wss = new WebSocketServer({
   maxPayload: 64 * 1024,
   verifyClient: ({ origin, req }, done) => {
     const host = req.headers.host;
-    if (!origin || !host || new URL(origin).host === host) done(true);
-    else done(false, 403, "Forbidden origin");
+    if (!origin || !host) {
+      done(true);
+      return;
+    }
+    try {
+      const parsedOrigin = new URL(origin);
+      if ((parsedOrigin.protocol === "http:" || parsedOrigin.protocol === "https:") && parsedOrigin.host === host) {
+        done(true);
+      } else {
+        done(false, 403, "Forbidden origin");
+      }
+    } catch {
+      done(false, 403, "Forbidden origin");
+    }
   },
 });
 
@@ -308,8 +329,11 @@ function handle(socket: AliveWebSocket, raw: string): void {
     }
 
     const actionId = "actionId" in message ? message.actionId : undefined;
-    if (room.consumeAction(actionId)) {
-      if (actionId) send(socket, { type: "action_ack", actionId });
+    if (typeof actionId !== "string" || actionId.length < 1 || actionId.length > 128) {
+      throw new Error("Некорректный идентификатор действия");
+    }
+    if (room.hasProcessedAction(player.id, actionId)) {
+      send(socket, { type: "action_ack", actionId });
       return;
     }
 
@@ -351,7 +375,8 @@ function handle(socket: AliveWebSocket, raw: string): void {
       }
     }
 
-    if (actionId) send(socket, { type: "action_ack", actionId });
+    room.markProcessedAction(player.id, actionId);
+    send(socket, { type: "action_ack", actionId });
     broadcast(room);
   } catch (error) {
     reject(
@@ -408,7 +433,7 @@ setInterval(() => {
     socket.isAlive = false;
     socket.ping();
   }
-}, 30_000).unref();
+}, HEARTBEAT_INTERVAL_MS).unref();
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Liars Bar server listening on ${PORT}`);

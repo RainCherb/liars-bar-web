@@ -19,7 +19,7 @@ export interface Session { playerId: string; }
 export class Room {
   readonly players = new Map<string, LobbyPlayer>();
   readonly sessions = new Map<string, Session>();
-  readonly actionIds = new Set<string>();
+  private readonly processedActionIds = new Map<string, Set<string>>();
   game: GameState | null = null;
   ownerId: string | null = null;
   turnEndsAt: number | null = null;
@@ -63,11 +63,12 @@ export class Room {
     this.touch();
     this.assertHost(playerId);
     if (this.game && this.game.phase.kind !== "gameover") throw new Error("Game already started");
-    if ([...this.players.values()].filter((player) => player.connected).length < 2) {
+    if (this.game?.phase.kind === "gameover") this.removeDisconnectedPlayers();
+    const connectedPlayers = [...this.players.values()].filter((player) => player.connected);
+    if (connectedPlayers.length < 2) {
       throw new Error("Нужно минимум два подключённых игрока");
     }
-    const ordered = [...this.players.values()];
-    this.game = startNetworkGame(ordered.map((p) => ({ name: p.name, characterId: p.characterId })), { difficulty: "normal", variant: this.settings.variant });
+    this.game = startNetworkGame(connectedPlayers.map((p) => ({ name: p.name, characterId: p.characterId })), { difficulty: "normal", variant: this.settings.variant });
     this.scheduleTurn();
   }
   action(playerId: string, action: { type: "play_cards"; cardIds: string[] } | { type: "challenge" }) {
@@ -79,7 +80,14 @@ export class Room {
     if (before === JSON.stringify(this.game)) throw new Error("Illegal action");
     this.scheduleTurn();
   }
-  advance() { if (this.game && this.game.phase.kind !== "idle" && this.game.phase.kind !== "gameover") { this.touch(); this.game = reducer(this.game, { type: "ADVANCE" }); this.scheduleTurn(); } }
+  advance() {
+    if (this.game && this.game.phase.kind !== "idle" && this.game.phase.kind !== "gameover") {
+      this.touch();
+      this.game = reducer(this.game, { type: "ADVANCE" });
+      if (this.game.phase.kind === "gameover") this.ensureConnectedOwner();
+      this.scheduleTurn();
+    }
+  }
   timeout() {
     if (!this.game || this.game.phase.kind !== "idle") return;
     this.touch();
@@ -99,6 +107,7 @@ export class Room {
     this.touch();
     if (this.game) {
       this.setConnected(playerId, false);
+      if (this.ownerId === playerId) this.ensureConnectedOwner();
       return;
     }
     this.players.delete(playerId);
@@ -112,6 +121,9 @@ export class Room {
     const player = this.players.get(playerId);
     if (player) {
       player.connected = connected;
+      if (!connected && this.ownerId === playerId && (!this.game || this.game.phase.kind === "gameover")) {
+        this.ensureConnectedOwner();
+      }
       this.touch();
     }
   }
@@ -130,10 +142,37 @@ export class Room {
     this.rouletteResultAt = null;
     return true;
   }
-  consumeAction(id?: string) { if (!id) return false; if (this.actionIds.has(id)) return true; this.actionIds.add(id); if (this.actionIds.size > 1000) this.actionIds.delete(this.actionIds.values().next().value!); return false; }
+  hasProcessedAction(playerId: string, id: string) {
+    return this.processedActionIds.get(playerId)?.has(id) ?? false;
+  }
+  markProcessedAction(playerId: string, id: string) {
+    let ids = this.processedActionIds.get(playerId);
+    if (!ids) {
+      ids = new Set<string>();
+      this.processedActionIds.set(playerId, ids);
+    }
+    ids.add(id);
+    if (ids.size > 1000) ids.delete(ids.values().next().value!);
+  }
   private assertHost(id: string) { if (this.ownerId !== id) throw new Error("Host only"); }
   private seatOf(id: string) { return [...this.players.keys()].indexOf(id); }
   private touch() { this.lastActivityAt = Date.now(); }
+  private ensureConnectedOwner() {
+    if (this.ownerId && this.players.get(this.ownerId)?.connected) return;
+    this.ownerId = [...this.players.values()].find((player) => player.connected)?.id ?? null;
+    for (const player of this.players.values()) player.isHost = player.id === this.ownerId;
+  }
+  private removeDisconnectedPlayers() {
+    for (const [playerId, player] of this.players) {
+      if (player.connected) continue;
+      this.players.delete(playerId);
+      this.processedActionIds.delete(playerId);
+      for (const [sessionId, session] of this.sessions) {
+        if (session.playerId === playerId) this.sessions.delete(sessionId);
+      }
+    }
+    this.ensureConnectedOwner();
+  }
   private scheduleTurn() {
     if (this.game?.phase.kind === "idle") {
       this.turnEndsAt = this.settings.turnSeconds > 0
