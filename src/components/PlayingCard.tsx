@@ -60,21 +60,95 @@ function DevilFace({ rank, size }: { rank: string; size: Size }) {
   );
 }
 
+function JokerFace({ size }: { size: Size }) {
+  return (
+    <div className={`card-face card-face--${size} is-joker`}>
+      <span className="joker-card__grain" aria-hidden="true" />
+
+      <div className="card-corner card-corner--tl joker-card__corner">
+        <span>J</span>
+        <span className="card-suit">★</span>
+      </div>
+
+      <div className="joker-card__figure" aria-hidden="true">
+        <svg viewBox="0 0 100 132">
+          {/* Маротта: посох с головой шута в правой руке */}
+          <path className="joker-stick" d="M75.8 63.6 L81.6 48.6" />
+          {/* Руки */}
+          <path className="joker-arm" d="M40.5 73.5 C32.5 77 26.5 83 24.8 91" />
+          <path className="joker-arm" d="M59.5 73.5 C67 76.5 71.5 73.5 74 67.5" />
+          {/* Ноги в туфлях с загнутыми носками */}
+          <path className="joker-arm" d="M46.5 97.5 C46.2 104 41.5 108.6 35 108.4 C32 108.3 30 106.9 28.7 104.9" />
+          <path className="joker-arm" d="M53.5 97.5 C53.8 104 58.5 108.6 65 108.4 C68 108.3 70 106.9 71.3 104.9" />
+          <path className="joker-curl" d="M28.7 104.9 C27 102.7 28 100.2 30.5 100" />
+          <path className="joker-curl" d="M71.3 104.9 C73 102.7 72 100.2 69.5 100" />
+          <circle className="joker-bell joker-bell--sm" cx="31.6" cy="99.4" r="1.9" />
+          <circle className="joker-bell joker-bell--sm" cx="68.4" cy="99.4" r="1.9" />
+          {/* Кафтан арлекина */}
+          <path className="joker-body" d="M39 71.5 L61 71.5 L56.5 98 L43.5 98 Z" />
+          <rect className="joker-diamond" x="-2.6" y="-2.6" width="5.2" height="5.2" transform="translate(44.8 79.5) rotate(45)" />
+          <rect className="joker-diamond" x="-2.6" y="-2.6" width="5.2" height="5.2" transform="translate(55.2 79.5) rotate(45)" />
+          <rect className="joker-diamond" x="-2.6" y="-2.6" width="5.2" height="5.2" transform="translate(50 87.5) rotate(45)" />
+          <path className="joker-belt" d="M43.9 92.8 L56.1 92.8 L55.4 96.9 L44.6 96.9 Z" />
+          {/* Манжеты и кисти */}
+          <circle className="joker-cuff" cx="24.8" cy="91" r="3.1" />
+          <circle className="joker-hand" cx="23.2" cy="95.3" r="2.9" />
+          <circle className="joker-cuff" cx="74" cy="67.5" r="3.1" />
+          <circle className="joker-hand" cx="75.8" cy="63.6" r="2.9" />
+          {/* Голова маротты */}
+          <path className="joker-hat-horn" d="M80 42.5 L78.2 37.6 L82 39.8 Z" />
+          <path className="joker-hat-horn joker-hat-horn--gold" d="M86 42.5 L87.8 37.6 L84 39.8 Z" />
+          <circle className="joker-bell joker-bell--sm" cx="77.9" cy="36.6" r="1.1" />
+          <circle className="joker-bell joker-bell--sm" cx="88.1" cy="36.6" r="1.1" />
+          <circle className="joker-face joker-face--mini" cx="83" cy="45.8" r="4.8" />
+          <circle className="joker-dot" cx="81.4" cy="45.4" r="0.55" />
+          <circle className="joker-dot" cx="84.6" cy="45.4" r="0.55" />
+          <path className="joker-smile joker-smile--mini" d="M81.6 47.6 Q83 48.9 84.4 47.6" />
+          {/* Воротник-жабо */}
+          <ellipse className="joker-collar" cx="36.5" cy="70.5" rx="4.7" ry="6.2" />
+          <ellipse className="joker-collar joker-collar--gold" cx="43.25" cy="70.5" rx="4.7" ry="6.2" />
+          <ellipse className="joker-collar" cx="50" cy="70.5" rx="4.7" ry="6.2" />
+          <ellipse className="joker-collar joker-collar--gold" cx="56.75" cy="70.5" rx="4.7" ry="6.2" />
+          <ellipse className="joker-collar" cx="63.5" cy="70.5" rx="4.7" ry="6.2" />
+          {/* Лицо */}
+          <circle className="joker-face" cx="50" cy="53" r="14.5" />
+          <circle className="joker-blush" cx="42.6" cy="57.8" r="2.7" />
+          <circle className="joker-blush" cx="57.4" cy="57.8" r="2.7" />
+          <circle className="joker-nose" cx="50" cy="55.6" r="1.3" />
+          <path className="joker-line" d="M42.3 52.6 Q45.1 49.2 47.9 52.6" />
+          <path className="joker-line" d="M52.1 52.6 Q54.9 49.2 57.7 52.6" />
+          <path className="joker-smile" d="M44.2 58.6 Q50 63.4 55.8 58.6" />
+          {/* Колпак: три рожка с бубенцами */}
+          <path className="joker-hat-horn joker-hat-horn--gold" d="M38.5 43.5 C29.5 44.5 21.5 41.5 15.8 34 C14.2 31.8 16.4 29.4 18.6 31 C24.5 36.6 32 40 40.5 40.2 Z" />
+          <path className="joker-hat-horn" d="M61.5 43.5 C70.5 44.5 78.5 41.5 84.2 34 C85.8 31.8 83.6 29.4 81.4 31 C75.5 36.6 68 40 59.5 40.2 Z" />
+          <path className="joker-hat-horn joker-hat-horn--gold" d="M47.5 39.8 C45 30 47.5 20 53 13 C54.6 11 57 12.8 55.7 15 C51.8 22 51.6 30 53.2 39.8 Z" />
+          <path className="joker-hatband" d="M35.5 46.5 C38.5 41.5 43.5 38.8 50 38.8 C56.5 38.8 61.5 41.5 64.5 46.5 C60.5 49.8 55.8 51.2 50 51.2 C44.2 51.2 39.5 49.8 35.5 46.5 Z" />
+          <circle className="joker-bell" cx="15.2" cy="31.6" r="2.9" />
+          <circle className="joker-bell" cx="84.8" cy="31.6" r="2.9" />
+          <circle className="joker-bell" cx="54.4" cy="11.4" r="2.9" />
+        </svg>
+      </div>
+
+      <span className="joker-card__title">Joker</span>
+      <span className="joker-card__seal" aria-hidden="true">★</span>
+
+      <div className="card-corner card-corner--br joker-card__corner">
+        <span>J</span>
+        <span className="card-suit">★</span>
+      </div>
+      <div className="card-frame joker-card__frame" />
+    </div>
+  );
+}
+
 export function CardFace({ rank, size = "md", devil = false }: FaceProps) {
   if (devil) return <DevilFace rank={rank} size={size} />;
+  if (rank === "JKR") return <JokerFace size={size} />;
 
   const glyph = SUIT_GLYPH[rank] ?? "?";
   const short = RANK_SHORT[rank as keyof typeof RANK_SHORT] ?? rank[0];
-  const isJoker = rank === "JKR";
   return (
-    <div
-      className={[
-        "card-face",
-        `card-face--${size}`,
-        isJoker ? "is-joker" : "",
-        devil ? "is-devil" : "",
-      ].join(" ")}
-    >
+    <div className={["card-face", `card-face--${size}`].join(" ")}>
       <div className="card-corner card-corner--tl">
         <span>{short}</span>
         <span className="card-suit">{glyph}</span>
@@ -85,9 +159,9 @@ export function CardFace({ rank, size = "md", devil = false }: FaceProps) {
             x="30"
             y="52"
             textAnchor="middle"
-            fontSize={isJoker ? 40 : 42}
+            fontSize="42"
             fontWeight="700"
-            fill={isJoker ? "#8c1f28" : "#221c20"}
+            fill="#221c20"
             fontFamily="'Russo One', system-ui, sans-serif"
           >
             {short}
@@ -102,7 +176,6 @@ export function CardFace({ rank, size = "md", devil = false }: FaceProps) {
         <span className="card-suit">{glyph}</span>
       </div>
       <div className="card-frame" />
-      {isJoker && <span className="joker-badge">Джокер</span>}
     </div>
   );
 }

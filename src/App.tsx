@@ -18,6 +18,7 @@ import { RulesModal } from "./components/RulesModal";
 import { OrientationGate } from "./components/OrientationGate";
 import { RevolverModal } from "./components/RevolverModal";
 import { ResultScreen } from "./components/ResultScreen";
+import { CardFace } from "./components/PlayingCard";
 import { AnimatePresence } from "framer-motion";
 import { OnlineLobbyScreen } from "./components/OnlineLobbyScreen";
 import { createOnlineRoom, useOnlineRoom } from "./hooks/useOnlineRoom";
@@ -217,10 +218,10 @@ export default function App() {
     : 1;
   const qaStage =
     qaStageParam === "load" ||
-    qaStageParam === "cock" ||
+    qaStageParam === "close" ||
     qaStageParam === "spin" ||
-    qaStageParam === "aim" ||
-    qaStageParam === "impact" ||
+    qaStageParam === "cock" ||
+    qaStageParam === "fire" ||
     qaStageParam === "result"
       ? qaStageParam
       : undefined;
@@ -237,6 +238,19 @@ export default function App() {
           total={1}
           stageOverride={qaStage}
         />
+      </div>
+    );
+  }
+  if (qaScene === "cards") {
+    return (
+      <div className="app app--visual-qa">
+        <div className="qa-card-board" aria-label="Проверка карт">
+          <CardFace rank="JKR" size="lg" />
+          <CardFace rank="JKR" size="md" />
+          <CardFace rank="JKR" size="sm" />
+          <CardFace rank="K" size="lg" devil />
+          <CardFace rank="A" size="lg" />
+        </div>
       </div>
     );
   }

@@ -25,7 +25,7 @@ import {
 import { decideBotAction } from "../game/ai";
 import { ALL_CHARACTER_IDS, botLine } from "../game/characters";
 import { sfx } from "../game/sounds";
-import { ROULETTE_PRESENTATION_MS } from "../game/roulettePresentation";
+import { rouletteHitOffsetMs, rouletteTotalMs } from "../game/roulettePresentation";
 
 export interface GameSetup {
   playerName: string;
@@ -40,7 +40,6 @@ export interface GameSetup {
 const BOT_THINK_MIN = 1400;
 const BOT_THINK_MAX = 2600;
 const REVEAL_MS = 2800;
-const ROULETTE_MS = ROULETTE_PRESENTATION_MS;
 /** Сколько держится реплика над местом игрока. */
 const TAUNT_MS = 3200;
 
@@ -140,7 +139,11 @@ export function useGameLoop(setup: GameSetup, paused = false): GameApi {
       return () => clearTimeout(t);
     }
     if (state.phase.kind === "roulette") {
-      const t = setTimeout(() => dispatch({ type: "ADVANCE" }), ROULETTE_MS);
+      // Длительность сцены зависит от числа патронов (номера спуска).
+      const t = setTimeout(
+        () => dispatch({ type: "ADVANCE" }),
+        rouletteTotalMs(state.phase.pullNumber),
+      );
       return () => clearTimeout(t);
     }
   }, [state.phase, paused]);
@@ -172,7 +175,11 @@ export function useGameLoop(setup: GameSetup, paused = false): GameApi {
       lastPhaseKey.current = key;
       const shooter = state.players[phase.shooter];
       if (!shooter.isHuman) {
-        setTimeout(() => say(phase.shooter, botLine(shooter.characterId, "survived")), 2400);
+        // Реплика «выжил» звучит сразу после щелчка курка.
+        setTimeout(
+          () => say(phase.shooter, botLine(shooter.characterId, "survived")),
+          rouletteHitOffsetMs(phase.pullNumber) + 600,
+        );
       }
     }
   }, [state.phase, state.players, state.roundNumber, say]);

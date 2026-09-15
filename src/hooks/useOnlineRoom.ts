@@ -69,7 +69,21 @@ export async function createOnlineRoom(settings: RoomSettings): Promise<string> 
     headers: { "content-type": "application/json" },
     body: JSON.stringify(settings),
   });
-  if (!response.ok) throw new Error("Не удалось создать комнату");
+  if (!response.ok) {
+    let serverMessage = "";
+    try {
+      const errorPayload = (await response.json()) as { error?: unknown };
+      if (typeof errorPayload.error === "string") serverMessage = errorPayload.error;
+    } catch {
+      // Прокси может вернуть пустой ответ, если backend не запущен.
+    }
+    throw new Error(
+      serverMessage ||
+        (response.status >= 500
+          ? "Сетевой сервер недоступен. Перезапустите игру командой npm run dev"
+          : "Не удалось создать комнату"),
+    );
+  }
   const payload = (await response.json()) as { roomCode?: string };
   if (!payload.roomCode) throw new Error("Сервер не вернул код комнаты");
   return payload.roomCode;
@@ -190,6 +204,13 @@ export function useOnlineRoom(options: OnlineRoomOptions): OnlineRoomApi {
             pendingActionsRef.current.delete(message.actionId);
           }
           setError(message.type === "error" ? message.message : message.reason);
+          if (message.type === "error" && message.fatal) {
+            // Отказ в самом входе (нет комнаты, игра уже идёт): повторные
+            // попытки бессмысленны — останавливаем переподключение.
+            intentionalLeaveRef.current = true;
+            setConnectionStatus("disconnected");
+            socket.close();
+          }
           return;
         }
         if (message.type === "player_kicked") {

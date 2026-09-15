@@ -58,7 +58,15 @@ function send(socket: WebSocket, value: unknown): void {
   if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(value));
 }
 
-function reject(socket: WebSocket, reason: string, actionId?: string): void {
+function reject(socket: AliveWebSocket, reason: string, actionId?: string): void {
+  const meta = clients.get(socket);
+  if (!meta?.roomCode) {
+    // Ошибка до входа в комнату фатальна: повторить действие негде.
+    // Пауза перед закрытием даёт сообщению уйти в сеть раньше кадра close.
+    send(socket, { type: "error", message: reason, fatal: true });
+    setTimeout(() => socket.close(4002, "Not joined"), 50).unref();
+    return;
+  }
   send(socket, { type: "action_rejected", reason, actionId });
 }
 
@@ -434,6 +442,32 @@ setInterval(() => {
     socket.ping();
   }
 }, HEARTBEAT_INTERVAL_MS).unref();
+
+let shuttingDown = false;
+function shutdown(signal: NodeJS.Signals): void {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`${signal} received, shutting down`);
+
+  for (const socket of clients.keys()) {
+    socket.close(1012, "Service restarting");
+  }
+  wss.close();
+  server.close((error) => {
+    if (error) {
+      console.error("HTTP server shutdown failed", error);
+      process.exitCode = 1;
+    }
+  });
+
+  setTimeout(() => {
+    for (const socket of clients.keys()) socket.terminate();
+    process.exitCode = 1;
+  }, 10_000).unref();
+}
+
+process.once("SIGTERM", () => shutdown("SIGTERM"));
+process.once("SIGINT", () => shutdown("SIGINT"));
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Liars Bar server listening on ${PORT}`);

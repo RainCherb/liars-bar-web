@@ -118,12 +118,17 @@ async function testMalformedTraffic() {
     assert(response.status === 400, `Malformed HTTP body returned ${response.status}`);
   }
 
-  const client = await connectRaw();
   for (const payload of ["null", "42", "[]", JSON.stringify({ type: "unknown" })]) {
+    // До входа в комнату любая ошибка фатальна: объяснение и закрытие.
+    const client = await connectRaw();
     client.socket.send(payload);
-    await client.inbox.next((message) => message.type === "action_rejected");
+    const verdict = await Promise.race([
+      client.inbox.next((message) => message.type === "error" || message.type === "action_rejected").then((m) => m.type),
+      delay(3000).then(() => "closed"),
+    ]);
+    assert(verdict === "error", `Pre-identify garbage returned ${verdict}, expected fatal error`);
+    client.socket.close();
   }
-  client.socket.close();
 
   const oversized = await connectRaw();
   const closed = new Promise((resolve) => oversized.socket.once("close", (code) => resolve(code)));

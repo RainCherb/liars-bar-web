@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { GameApi, GameSetup } from "../hooks/useGameLoop";
 import { cardIsDevil, rankName, tableName } from "../game/engine";
 import { VARIANT_LABELS } from "../game/types";
+import { CHAMBERS } from "../game/types";
 import { sfx } from "../game/sounds";
 import { PlayerSeat } from "./PlayerSeat";
 import { PlayingCard, CardFace } from "./PlayingCard";
@@ -79,6 +80,16 @@ export function GameTable({
   const claimed = state.pile.reduce((n, e) => n + e.cards.length, 0);
   const lastEntry = state.pile[state.pile.length - 1];
 
+  // Свой барабан дублируется в топбар: на телефоне своё место за столом
+  // скрыто, а счётчик патронов должен оставаться перед глазами.
+  const myPullsMade = CHAMBERS - me.chambers.length;
+  const myChambersLeft = Math.max(1, me.chambers.length);
+  const drumOdds = !me.alive
+    ? "Вы выбыли из игры"
+    : myChambersLeft > 1
+      ? `Следующий спуск — 1 из ${myChambersLeft}`
+      : "Следующий спуск — выстрел неизбежен";
+
   const statusText = (() => {
     if (paused) return "Пауза";
     if (phase.kind === "reveal") return "Вскрытие выкладки…";
@@ -119,6 +130,35 @@ export function GameTable({
           {setup.variant !== "classic" && (
             <span className="topbar__variant">{VARIANT_LABELS[setup.variant]}</span>
           )}
+        </div>
+        <div className="topbar__center">
+          <div
+            className={[
+              "topbar__drum",
+              !me.alive ? "is-dead" : "",
+              me.alive && myChambersLeft <= 1 ? "is-doomed" : "",
+            ].join(" ")}
+            title={drumOdds}
+            role="img"
+            aria-label={`Ваш барабан: ${drumOdds}`}
+          >
+            <svg className="topbar__drum-icon" viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="10" cy="10" r="8.6" className="topbar__drum-body" />
+              <circle cx="10" cy="10" r="1.9" className="topbar__drum-pin" />
+              <circle cx="14.5" cy="7.4" r="1.55" className="topbar__drum-chamber" />
+              <circle cx="10" cy="4.8" r="1.55" className="topbar__drum-chamber" />
+              <circle cx="5.5" cy="7.4" r="1.55" className="topbar__drum-chamber" />
+              <circle cx="5.5" cy="12.6" r="1.55" className="topbar__drum-chamber" />
+              <circle cx="10" cy="15.2" r="1.55" className="topbar__drum-chamber" />
+              <circle cx="14.5" cy="12.6" r="1.55" className="topbar__drum-chamber" />
+            </svg>
+            {Array.from({ length: CHAMBERS }).map((_, i) => (
+              <span
+                key={i}
+                className={`topbar__bullet ${i < myPullsMade ? "is-spent" : ""}`}
+              />
+            ))}
+          </div>
         </div>
         <div className="topbar__right">
           <button

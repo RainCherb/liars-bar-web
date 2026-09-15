@@ -8,11 +8,6 @@ import type { CharacterId, Rank } from "./types";
 export type SfxName =
   | "card"
   | "flip"
-  | "reload"
-  | "spin"
-  | "cock"
-  | "dryClick"
-  | "gunshot"
   | "heartbeat"
   | "win"
   | "lose"
@@ -162,6 +157,23 @@ export function resolveVoicePath(
 
 const MASTER_VOLUME = 0.5;
 
+/**
+ * Тактильная отдача, доступная и внешним звуковым движкам (револьверная сцена).
+ * На десктопе и при SSR безопасно ничего не делает.
+ */
+export function vibrateHaptic(pattern: number | number[]): void {
+  if (typeof navigator === "undefined") return;
+  const nav = navigator as Navigator & {
+    vibrate?: (pattern: number | number[]) => boolean;
+  };
+  if (typeof nav.vibrate !== "function") return;
+  try {
+    nav.vibrate(pattern);
+  } catch {
+    /* Некоторые браузеры блокируют вибрацию без жеста пользователя. */
+  }
+}
+
 export class SoundEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -254,16 +266,7 @@ export class SoundEngine {
    */
   private vibrate(pattern: number | number[]): void {
     if (this.muted) return;
-    if (typeof navigator === "undefined") return;
-    const nav = navigator as Navigator & {
-      vibrate?: (pattern: number | number[]) => boolean;
-    };
-    if (typeof nav.vibrate !== "function") return;
-    try {
-      nav.vibrate(pattern);
-    } catch {
-      /* Некоторые браузеры блокируют вибрацию без жеста пользователя. */
-    }
+    vibrateHaptic(pattern);
   }
 
   private noiseBuffer(ctx: AudioContext, seconds: number): AudioBuffer {
@@ -276,21 +279,9 @@ export class SoundEngine {
 
   play(name: SfxName): void {
     if (this.muted) return;
-    const ctx = this.ensure();
-    if (!ctx || !this.master) return;
-    const t = ctx.currentTime;
 
     // Тактильная отдача для ключевых событий, если доступен Vibration API.
     switch (name) {
-      case "reload":
-        this.vibrate([10, 24, 12]);
-        break;
-      case "gunshot":
-        this.vibrate([40, 30, 120]);
-        break;
-      case "dryClick":
-        this.vibrate(18);
-        break;
       case "win":
         this.vibrate([25, 40, 25, 40, 60]);
         break;
@@ -298,6 +289,15 @@ export class SoundEngine {
         this.vibrate(180);
         break;
     }
+
+    this.playSynth(name);
+  }
+
+  /** Синтезированные эффекты на WebAudio. */
+  private playSynth(name: SfxName): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const t = ctx.currentTime;
 
     switch (name) {
       case "card":
@@ -326,104 +326,6 @@ export class SoundEngine {
         g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
         src.connect(filter).connect(g).connect(this.master);
         src.start(t);
-        break;
-      }
-      case "reload": {
-        // Латунный патрон входит в гнездо, затем барабан защёлкивается.
-        for (const [offset, freq, gain] of [
-          [0, 2600, 0.2],
-          [0.18, 1350, 0.3],
-          [0.39, 720, 0.38],
-        ] as const) {
-          const src = ctx.createBufferSource();
-          src.buffer = this.noiseBuffer(ctx, 0.045);
-          const filter = ctx.createBiquadFilter();
-          filter.type = "bandpass";
-          filter.frequency.value = freq;
-          filter.Q.value = 7;
-          const g = ctx.createGain();
-          g.gain.setValueAtTime(gain, t + offset);
-          g.gain.exponentialRampToValueAtTime(0.001, t + offset + 0.055);
-          src.connect(filter).connect(g).connect(this.master);
-          src.start(t + offset);
-        }
-        break;
-      }
-      case "spin": {
-        // Длинная трещотка укладывается в полную визуальную фазу вращения (~1,7 секунды).
-        let time = t;
-        for (let i = 0; i < 20; i++) {
-          const src = ctx.createBufferSource();
-          src.buffer = this.noiseBuffer(ctx, 0.03);
-          const filter = ctx.createBiquadFilter();
-          filter.type = "bandpass";
-          filter.frequency.value = 2200 + Math.random() * 800;
-          const g = ctx.createGain();
-          g.gain.setValueAtTime(0.28 - i * 0.012, time);
-          g.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
-          src.connect(filter).connect(g).connect(this.master);
-          src.start(time);
-          time += 0.035 + i * 0.0045;
-        }
-        break;
-      }
-      case "cock": {
-        // Взведение курка: два металлических щелчка (храповик + фиксатор).
-        for (const [offset, freq] of [
-          [0, 1400],
-          [0.16, 2100],
-        ] as const) {
-          const src = ctx.createBufferSource();
-          src.buffer = this.noiseBuffer(ctx, 0.05);
-          const filter = ctx.createBiquadFilter();
-          filter.type = "bandpass";
-          filter.frequency.value = freq;
-          filter.Q.value = 6;
-          const g = ctx.createGain();
-          g.gain.setValueAtTime(0.32, t + offset);
-          g.gain.exponentialRampToValueAtTime(0.001, t + offset + 0.05);
-          src.connect(filter).connect(g).connect(this.master);
-          src.start(t + offset);
-        }
-        break;
-      }
-      case "dryClick": {
-        const osc = ctx.createOscillator();
-        osc.type = "square";
-        osc.frequency.setValueAtTime(900, t);
-        osc.frequency.exponentialRampToValueAtTime(180, t + 0.06);
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.4, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-        osc.connect(g).connect(this.master);
-        osc.start(t);
-        osc.stop(t + 0.1);
-        break;
-      }
-      case "gunshot": {
-        const src = ctx.createBufferSource();
-        src.buffer = this.noiseBuffer(ctx, 0.5);
-        const filter = ctx.createBiquadFilter();
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(6000, t);
-        filter.frequency.exponentialRampToValueAtTime(220, t + 0.4);
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.9, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
-        src.connect(filter).connect(g).connect(this.master);
-        src.start(t);
-
-        // Низкий удар.
-        const osc = ctx.createOscillator();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(140, t);
-        osc.frequency.exponentialRampToValueAtTime(38, t + 0.3);
-        const og = ctx.createGain();
-        og.gain.setValueAtTime(0.8, t);
-        og.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-        osc.connect(og).connect(this.master);
-        osc.start(t);
-        osc.stop(t + 0.4);
         break;
       }
       case "heartbeat": {
@@ -468,6 +370,16 @@ export class SoundEngine {
   /** Разблокировать AudioContext после первого жеста пользователя. */
   unlock(): void {
     this.ensure();
+  }
+
+  /**
+   * Общая шина эффектов для внешних процедурных движков (звук револьверной
+   * сцены): контекст и мастер-гейн, поэтому подчиняются громкости и mute.
+   */
+  fxBus(): { ctx: AudioContext; out: AudioNode } | null {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return null;
+    return { ctx, out: this.master };
   }
 }
 

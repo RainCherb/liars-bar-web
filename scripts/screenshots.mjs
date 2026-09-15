@@ -3,12 +3,14 @@
  * и состояний. Запуск: node scripts/screenshots.mjs
  */
 import { spawn, execSync } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, rmSync } from "node:fs";
 import { chromium } from "playwright";
 
 const PORT = 8321;
 const BASE = `http://127.0.0.1:${PORT}`;
 const OUT = "shots";
+// Прошлые прогоны не должны оставлять устаревшие кадры рядом с новыми.
+rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
 const consoleErrors = [];
@@ -26,26 +28,77 @@ async function waitForServer(url, timeoutMs = 45000) {
   throw new Error("server not up");
 }
 
-/** Ждёт наш ход ИЛИ финал партии. Возвращает "turn" | "over". */
-async function waitTurnOrOver(page, timeoutMs = 60000) {
+/** Ждёт наш ход, гибель игрока или финал партии. Возвращает "turn" | "dead" | "over". */
+async function waitTurnOrOver(page, timeoutMs = 60000, label = "unknown") {
   try {
     await page.waitForFunction(
       () => {
-        const t = document.body.innerText;
+        // innerText отражает CSS-регистр («ПОБЕДИТЕЛЬ ПАРТИИ») — сравниваем без него.
+        const t = document.body.innerText.toLowerCase();
         return (
-          t.includes("Ваш ход") || t.includes("ВЫЖИЛИ") || t.includes("КОНЕЦ НОЧИ")
+          t.includes("ваш ход") ||
+          t.includes("вы выбыли") ||
+          t.includes("выжили") ||
+          t.includes("конец ночи") ||
+          t.includes("победитель партии") ||
+          t.includes("победителей нет")
         );
       },
       { timeout: timeoutMs },
     );
   } catch {
-    await page.screenshot({ path: `${OUT}/99-stuck-state.png` });
-    throw new Error("waitTurnOrOver: timeout (см. 99-stuck-state.png)");
+    await page.screenshot({ path: `${OUT}/99-stuck-${label}.png` });
+    throw new Error(`waitTurnOrOver[${label}]: timeout (см. 99-stuck-${label}.png)`);
   }
   return page.evaluate(() => {
-    const t = document.body.innerText;
-    return t.includes("ВЫЖИЛИ") || t.includes("КОНЕЦ НОЧИ") ? "over" : "turn";
+    const t = document.body.innerText.toLowerCase();
+    if (t.includes("вы выбыли")) return "dead";
+    const over =
+      t.includes("выжили") ||
+      t.includes("конец ночи") ||
+      t.includes("победитель партии") ||
+      t.includes("победителей нет");
+    return over ? "over" : "turn";
   });
+}
+
+/** Кладёт первую легальную карту: перебирает руку, пока кнопка не активируется. */
+async function playAnyCard(page) {
+  const slots = page.locator(".hand__slot .playing-card");
+  const count = await slots.count();
+  const btn = page.getByRole("button", { name: /^Положить/ });
+  for (let i = 0; i < count; i += 1) {
+    await slots.nth(i).click();
+    await page.waitForTimeout(220);
+    if (!(await btn.isDisabled())) {
+      await btn.click();
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Доигрывает до доступного обвинения: кладёт карту в свой ход, пока кнопка
+ * обвинения заблокирована, затем нажимает её. Гарантирует, что сцена рулетки
+ * действительно состоится, а не пропустится молча.
+ */
+async function playUntilChallenge(page, { maxTurns = 8 } = {}) {
+  for (let i = 0; i < maxTurns; i += 1) {
+    const state = await waitTurnOrOver(page);
+    if (state === "over") return false;
+    if (state === "dead") throw new Error("Игрок погиб до сцены рулетки");
+    const danger = page.locator(".btn--danger");
+    if (!(await danger.isDisabled())) {
+      await danger.click();
+      return true;
+    }
+    if (!(await playAnyCard(page))) {
+      throw new Error("Нет ни доступного обвинения, ни легальной карты");
+    }
+    await page.waitForTimeout(1200);
+  }
+  return false;
 }
 
 async function shot(page, name) {
@@ -65,7 +118,10 @@ async function shot(page, name) {
 }
 
 async function startGame(page, { waitForTable = true } = {}) {
-  await page.getByRole("button", { name: "Сесть за стол" }).click();
+  // Меню по умолчанию в онлайн-режиме: при необходимости переключаемся на ботов.
+  const mode = page.locator(".menu__check--mode input");
+  if (!(await mode.isChecked())) await page.locator(".menu__check--mode").click();
+  await page.getByRole("button", { name: "Играть с ботами" }).click();
   if (waitForTable) {
     await page.waitForSelector(".hand .playing-card", { timeout: 15000 });
   }
@@ -97,6 +153,7 @@ try {
   await page.waitForTimeout(900);
   await shot(page, "01-menu");
 
+  await page.locator(".menu__check--mode").click();
   await page.locator(".menu__char", { hasText: "Cupcake" }).click();
   await page.locator(".menu__diff button", { hasText: "Акула бара" }).click();
   await page.locator(".menu__bots button", { hasText: "дуэль" }).click();
@@ -131,35 +188,35 @@ try {
   await page.waitForTimeout(1400);
   await shot(page, "06-bot-thinking");
 
-  let over = (await waitTurnOrOver(page)) === "over";
+  let over = (await waitTurnOrOver(page, 60000, "07")) === "over";
   await shot(page, "07-my-turn-again");
 
   if (!over) {
-    // Обвиняем бота → вскрытие → рулетка
-    const danger = page.locator(".btn--danger");
-    if (!(await danger.isDisabled())) {
-      await danger.click();
-      await page.waitForTimeout(700);
-      await shot(page, "08-reveal-overlay");
-      await page.waitForTimeout(1400);
-      await page.waitForSelector(".overlay--roulette", { timeout: 5000 });
-      await page.waitForSelector('.overlay--roulette[data-stage="spin"]', {
-        timeout: 3000,
-      });
-      await shot(page, "09-roulette-spin");
-      await page.waitForSelector('.overlay--roulette[data-stage="result"]', {
-        timeout: 3000,
-      });
-      await shot(page, "10-roulette-result");
-      await page.waitForFunction(
-        () => !document.querySelector(".overlay--roulette"),
-        { timeout: 9000 },
-      );
-      await page.waitForTimeout(500);
-    }
+    // Обвиняем бота → вскрытие → рулетка. Обвинение может стать доступным
+    // не сразу — доигрываем до него, рулетка обязана состояться.
+    const challenged = await playUntilChallenge(page);
+    if (!challenged) throw new Error("Не удалось дойти до сцены рулетки");
+    await page.waitForTimeout(700);
+    await shot(page, "08-reveal-overlay");
+    await page.waitForTimeout(1400);
+    await page.waitForSelector(".overlay--roulette", { timeout: 5000 });
+    await page.waitForSelector('.overlay--roulette[data-stage="spin"]', {
+      timeout: 7000,
+    });
+    await shot(page, "09-roulette-spin");
+    await page.waitForSelector('.overlay--roulette[data-stage="result"]', {
+      timeout: 8000,
+    });
+    await shot(page, "10-roulette-result");
+    await page.waitForFunction(
+      () => !document.querySelector(".overlay--roulette"),
+      { timeout: 9000 },
+    );
+    await page.waitForTimeout(500);
     await shot(page, "11-after-shot-state");
 
-    over = (await waitTurnOrOver(page)) === "over";
+    // Игрок мог погибнуть на своём спуске — тогда его ходов больше не будет.
+    over = (await waitTurnOrOver(page, 60000, "11")) !== "turn";
   }
 
   if (!over) {
@@ -173,7 +230,7 @@ try {
     await page.waitForTimeout(1200);
     await shot(page, "13-multi-played");
 
-    over = (await waitTurnOrOver(page)) === "over";
+    over = (await waitTurnOrOver(page, 60000, "13")) === "over";
   }
 
   if (!over) {
@@ -219,23 +276,35 @@ try {
   await mp.getByRole("button", { name: "Продолжить" }).click();
   await mp.waitForTimeout(300);
 
-  // Ждём свой ход и пробуем вскрытие с рулеткой на мобильном
+  // Ждём свой ход и доигрываем до вскрытия с рулеткой на мобильном.
+  // Игрок мог погибнуть на чужом обвинении — тогда начинаем партию заново.
   try {
-    await mp.waitForFunction(
-      () => document.body.innerText.includes("Ваш ход"),
-      { timeout: 45000 },
-    );
-    const danger = mp.locator(".btn--danger");
-    if (!(await danger.isDisabled())) {
-      await danger.click();
-      await mp.waitForTimeout(800);
-      await shot(mp, "26-mobile-reveal");
-      await mp.waitForSelector(".overlay--roulette", { timeout: 5000 });
-      await mp.waitForSelector('.overlay--roulette[data-stage="spin"]', {
-        timeout: 3000,
-      });
-      await shot(mp, "27-mobile-roulette");
+    let captured = false;
+    for (let attempt = 0; attempt < 2 && !captured; attempt += 1) {
+      try {
+        const challenged = await playUntilChallenge(mp);
+        if (!challenged) throw new Error("Не удалось дойти до сцены рулетки");
+        captured = true;
+        await mp.waitForTimeout(800);
+        await shot(mp, "26-mobile-reveal");
+        await mp.waitForSelector(".overlay--roulette", { timeout: 5000 });
+        await mp.waitForSelector('.overlay--roulette[data-stage="spin"]', {
+          timeout: 7000,
+        });
+        await shot(mp, "27-mobile-roulette");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (attempt === 0 && message.includes("погиб")) {
+          console.log("  игрок погиб на спуске — начинаем мобильную партию заново");
+          await mp.goto(BASE);
+          await mp.waitForTimeout(800);
+          await startGame(mp);
+          continue;
+        }
+        throw error;
+      }
     }
+    if (!captured) throw new Error("Сцена рулетки не снята за две попытки");
   } catch (error) {
     consoleErrors.push(`mobile roulette: ${error instanceof Error ? error.message : String(error)}`);
   }

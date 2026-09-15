@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { canChallenge, mustChallenge, reducer, startNetworkGame } from "../src/game/engine";
 import type { CharacterId, GameState, GameVariant } from "../src/game/types";
 import type { LobbyPlayer } from "../src/network/protocol";
-import { ROULETTE_PRESENTATION_MS, ROULETTE_STAGE_MS } from "../src/game/roulettePresentation";
+import { rouletteHitOffsetMs, rouletteTotalMs } from "../src/game/roulettePresentation";
 
 export const MAX_PLAYERS = 4;
 const ROOM_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -185,11 +185,13 @@ export class Room {
       // a reveal or a revolver pull resolves.
       this.turnEndsAt = null;
       const now = Date.now();
+      const roulette = this.game.phase.kind === "roulette" ? this.game.phase : null;
       this.phaseEndsAt = now + (
-        this.game.phase.kind === "reveal" ? 2800 : ROULETTE_PRESENTATION_MS
+        this.game.phase.kind === "reveal" ? 2800 : roulette ? rouletteTotalMs(roulette.pullNumber) : 0
       );
-      this.rouletteResultAt = this.game.phase.kind === "roulette"
-        ? now + ROULETTE_STAGE_MS.load + ROULETTE_STAGE_MS.cock + ROULETTE_STAGE_MS.spin + ROULETTE_STAGE_MS.aim
+      // Исход раскрывается ровно в момент удара курка на таймлайне сцены.
+      this.rouletteResultAt = roulette
+        ? now + rouletteHitOffsetMs(roulette.pullNumber)
         : null;
     } else {
       this.turnEndsAt = null;

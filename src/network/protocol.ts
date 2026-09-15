@@ -34,7 +34,12 @@ export type ServerEvent =
   | { type: "action_rejected"; reason: string; actionType?: string; actionId?: string }
   | { type: "player_kicked"; roomCode: string }
   | { type: "room_closed"; roomCode: string; reason: string }
-  | { type: "error"; message: string };
+  | {
+      type: "error";
+      message: string;
+      /** Фатальная ошибка контекста (например, отказ в identify): соединение закрыто. */
+      fatal?: boolean;
+    };
 
 export type ClientMessage =
   | {
